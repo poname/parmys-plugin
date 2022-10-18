@@ -1010,6 +1010,7 @@ struct ParMYSPass : public Pass {
 		bool flag_config_file = false;
 		bool flag_load_vtr_primitives = false;
 		bool flag_read_verilog_input = false;
+		bool flag_no_pass = false;
 		std::string arch_file_path;
 		std::string config_file_path;
 		std::string top_module_name;
@@ -1050,6 +1051,10 @@ struct ParMYSPass : public Pass {
 			}
 			if (args[argidx] == "-vtr_prim") {
 				flag_load_vtr_primitives = true;
+				continue;
+			}
+			if (args[argidx] == "-nopass") {
+				flag_no_pass = true;
 				continue;
 			}
 			if (args[argidx] == "-v" && argidx + 1 < args.size()) {
@@ -1130,7 +1135,7 @@ struct ParMYSPass : public Pass {
 		log("Using Lut input width of: %d\n", physical_lut_size);
 
 		if (flag_load_vtr_primitives) {
-			Pass::call(design, "read_verilog -nomem2reg libs/vtr/vtr_flow/primitives.v");
+			Pass::call(design, "read_verilog -nomem2reg ../misc/primitives.v");
 			Pass::call(design, "setattr -mod -set keep_hierarchy 1 single_port_ram");
 			Pass::call(design, "setattr -mod -set keep_hierarchy 1 dual_port_ram");
 		}
@@ -1185,13 +1190,17 @@ struct ParMYSPass : public Pass {
 		// // Pass::call(design, "fsm;");
 		// }
 
-		Pass::call(design, "proc;");
-		Pass::call(design, "fsm;");
-		Pass::call(design, "memory_collect; memory_dff;");
-		Pass::call(design, "check");
-		Pass::call(design, "flatten");
-		Pass::call(design, "opt_clean");
-		Pass::call(design, "stat");
+		if (!flag_no_pass) {
+			Pass::call(design, "proc;");
+			Pass::call(design, "fsm;");
+			Pass::call(design, "memory_collect; memory_dff;");
+			Pass::call(design, "check");
+			Pass::call(design, "flatten");
+			Pass::call(design, "opt_clean");
+			Pass::call(design, "stat");
+		}
+
+		
 
 		if (design->top_module()->processes.size() != 0)
 			log_error("Found unmapped processes in top module %s: unmapped processes are not supported in parmys pass!\n",
