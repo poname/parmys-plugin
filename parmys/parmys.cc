@@ -1158,11 +1158,7 @@ struct ParMYSPass : public Pass {
 			Pass::call(design, "read_verilog -sv -nolatches " + verilog_input_path);
 		}
 
-		if (top_module_name.empty()) {
-			Pass::call(design, "hierarchy -check -auto-top -purge_lib");
-		} else {
-			Pass::call(design, "hierarchy -check -top " + top_module_name);
-		}
+
 
 		// if(!flag_no_pass) {
 		// Pass::call(design, "proc;");
@@ -1191,6 +1187,13 @@ struct ParMYSPass : public Pass {
 		// }
 
 		if (!flag_no_pass) {
+
+			if (top_module_name.empty()) {
+				Pass::call(design, "hierarchy -check -auto-top -purge_lib");
+			} else {
+				Pass::call(design, "hierarchy -check -top " + top_module_name);
+			}
+
 			Pass::call(design, "proc;");
 			Pass::call(design, "fsm;");
 			Pass::call(design, "memory_collect; memory_dff;");
