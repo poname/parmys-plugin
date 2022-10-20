@@ -1305,7 +1305,9 @@ struct ParMYSPass : public Pass {
 		log("\n--------------------------------------------------------------------\n");
 
 		log("Updating the Design\n");
+		Pass::call(design, "stat");
 		Pass::call(design, "delete");
+		Pass::call(design, "stat");
 		Pass::call(design, "ls");
 		Pass::call(design, "stat");
 
