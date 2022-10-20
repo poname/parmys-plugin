@@ -1307,6 +1307,11 @@ struct ParMYSPass : public Pass {
 		log("Updating the Design\n");
 		Pass::call(design, "stat");
 		Pass::call(design, "delete");
+
+		for (auto module : design->modules()) {
+			design->remove(module);
+		}
+		
 		Pass::call(design, "stat");
 		Pass::call(design, "ls");
 		Pass::call(design, "stat");
