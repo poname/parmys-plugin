@@ -1305,7 +1305,7 @@ struct ParMYSPass : public Pass {
 		log("\n--------------------------------------------------------------------\n");
 
 		log("Updating the Design\n");
-		Pass::call(design, "design -reset");
+		Pass::call(design, "delete");
 
 		for (auto bb_module : black_boxes) {
 			Yosys::Module *module = nullptr;
