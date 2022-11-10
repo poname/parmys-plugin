@@ -362,6 +362,7 @@ struct ParMYSPass : public Pass {
 		case (SPRAM):
 		case (DPRAM):
 		case (YMEM):
+		case (YMEM2):
 		case (BRAM):
 		case (ROM):
 		case (FF_NODE):
@@ -1129,7 +1130,7 @@ struct ParMYSPass : public Pass {
 				XmlReadArch(arch_file_path.c_str(), false, &Arch, physical_tile_types, logical_block_types);
 				set_physical_lut_size(logical_block_types);
 			} catch (vtr::VtrError &vtr_error) {
-				log_error("Odin Failed to load architecture file: %s with exit code%d\n", vtr_error.what(), ERROR_PARSE_ARCH);
+				log_error("Odin Failed to load architecture file: %s with exit code%d at line: %ld\n", vtr_error.what(), ERROR_PARSE_ARCH, vtr_error.line());
 			}
 		}
 		log("Using Lut input width of: %d\n", physical_lut_size);

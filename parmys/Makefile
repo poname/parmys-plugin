@@ -90,7 +90,8 @@ SOURCES = parmys.cc \
 		  ../third_party/libarchfpga/src/arch_check.cc \
 		  ../third_party/libarchfpga/src/arch_util.cc \
 		  ../third_party/libarchfpga/src/read_xml_arch_file.cc \
-		  ../third_party/libarchfpga/src/parse_switchblocks.cc
+		  ../third_party/libarchfpga/src/parse_switchblocks.cc \
+		  ../third_party/libarchfpga/src/echo_arch.cc
 
 include ../Makefile_plugin.common
 

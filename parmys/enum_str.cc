@@ -105,6 +105,7 @@ const char *operation_list_STR[][2] = {
   {"SPRAM", "spRAM"},		     // representing primitive single port ram
   {"DPRAM", "dpRAM"},		     // representing primitive dual port ram
   {"YMEM", "yRAM"},		     // representing primitive dual port ram
+  {"YMEM2", "yRAM"},                 // representing primitive dual port ram
   {"BRAM", "bRAM"},		     // block of memry generated in yosys subcircuit formet blif file
   {"ROM", "ROM"},
   // [END] operations to cover yosys subckt
@@ -369,7 +370,8 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$lut", SKIP},	     // (A, Y)
   {"$macc", SKIP},	     // (A, B, Y)
   {"$mem", YMEM},
-  {"$mem_v2", SKIP},	  //@TODO                          // (RD_CLK, RD_EN, RD_ADDR, RD_DATA, WR_CLK, WR_EN, WR_ADDR, WR_DATA)
+  // {"$mem_v2", SKIP},	  //@TODO                          // (RD_CLK, RD_EN, RD_ADDR, RD_DATA, WR_CLK, WR_EN, WR_ADDR, WR_DATA)
+  {"$mem_v2", YMEM2},
   {"$meminit", SKIP},	  // (ADDR, DATA)
   {"$memrd", ROM},	  // (CLK, EN, ADDR, DATA)
   {"$memwr", SKIP},	  // (CLK, EN, ADDR, DATA)
