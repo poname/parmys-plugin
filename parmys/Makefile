@@ -54,8 +54,6 @@ SOURCES = parmys.cc \
 		  Verilog.cc \
 		  VerilogReader.cc \
 		  VerilogWriter.cc \
-		  BLIFReader.cc \
-		  BLIFWriter.cc \
 		  BLIFElaborate.cc \
 		  Hashtable.cc \
 		  LogicalOps.cc \
