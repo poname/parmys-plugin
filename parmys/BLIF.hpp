@@ -89,7 +89,7 @@ struct hard_block_models {
     Hashtable* index;
 };
 
-extern int line_count;
+// extern int line_count;
 extern int num_lines;
 extern bool skip_reading_bit_map;
 extern bool insert_global_clock;

@@ -124,7 +124,7 @@ void update_design(Yosys::Design *design, const netlist_t *netlist)
 	module->name = Yosys::RTLIL::escape_id(strtok(netlist->identifier, " \t\r\n"));
 
 	if (design->module(module->name))
-		Yosys::log_error("Duplicate definition of module %s in line %d!\n", Yosys::log_id(module->name), line_count);
+		Yosys::log_error("Duplicate definition of module %s\n", Yosys::log_id(module->name));
 	design->add(module);
 
 	Yosys::RTLIL::SigSpec undef;
