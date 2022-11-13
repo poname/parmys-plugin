@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2021 Seyed Alireza Damghani (sdamghann@gmail.com)
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,10 +21,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __BLIF_ELABORATE_H
-#define __BLIF_ELABORATE_H
+#ifndef __RESOLVE_H
+#define __RESOLVE_H
 
-// PROTOTYPES
-void blif_elaborate_top(netlist_t* netlist);
-void depth_first_traversal_to_blif_elaborate(short marker_value, netlist_t* netlist);
+void resolve_top(netlist_t* netlist);
+
 #endif

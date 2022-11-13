@@ -40,7 +40,7 @@
 
 #include "netlist_visualizer.h"
 
-#include "BLIFElaborate.hpp"
+#include "Resolve.hpp"
 
 #include "BlockMemories.hpp"
 #include "adders.h"
@@ -790,7 +790,7 @@ struct ParMYSPass : public Pass {
 		// find_hard_adders_for_sub();
 		register_hard_blocks();
 
-		blif_elaborate_top(odin_netlist);
+		resolve_top(odin_netlist);
 
 		elaboration_time = wall_time() - elaboration_time;
 		log("\nElaboration Time: ");

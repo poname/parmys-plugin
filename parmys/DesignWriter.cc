@@ -27,7 +27,7 @@
 #include "odin_types.h"
 #include "odin_util.h"
 
-#include "BLIFElaborate.hpp"
+#include "Resolve.hpp"
 #include "ast_util.h"
 #include "netlist_check.h"
 #include "netlist_cleanup.h"

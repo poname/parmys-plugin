@@ -14,23 +14,14 @@ struct loc_t {
 
 enum odin_error {
     NO_ERROR,
-    /* for error in utility functions*/
     UTIL,
-    /* for error during initialization */
     PARSE_ARGS,
-    /* for parser errors */
     PARSER,
-    /* for AST related errors */
     AST,
-    /* for BLIF elaboration related error */
-    BLIF_ELABORATION,
-    /* for Netlist related errors */
+    RESOLVE,
     NETLIST,
-    /* for blif parser errors */
     PARSE_BLIF,
-    /* for blif output errors */
     OUTPUT_BLIF,
-    /* for errors in the netlist simulation */
     SIMULATION,
 };
 
