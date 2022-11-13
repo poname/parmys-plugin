@@ -60,7 +60,6 @@ SOURCES = parmys.cc \
 		  FlipFlop.cc \
 		  Latch.cc \
 		  CaseEqual.cc \
-		  Modulo.cc \
 		  Division.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \
 		  ../third_party/libvtrutil/src/vtr_token.cc \

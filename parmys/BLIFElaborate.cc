@@ -58,7 +58,7 @@
 // #include "Power.hpp"
 #include "FlipFlop.hpp"
 #include "Shift.hpp"
-#include "Modulo.hpp"
+// #include "Modulo.hpp"
 #include "CaseEqual.hpp"
 #include "Multiplexer.hpp"
 #include "subtractions.h"
@@ -242,7 +242,7 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         case MINUS:    //fallthorugh
         case MULTIPLY: //fallthrough
         // case POWER:    //fallthrough
-        case MODULO:   //fallthrough
+        // case MODULO:   //fallthrough
         case DIVIDE: {
             /**
              * resolving the arithmetic node by
@@ -501,13 +501,13 @@ static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_numb
         //     resolve_power_node(node, traverse_mark_number, netlist);
         //     break;
         // }
-        case MODULO: {
-            /**
-             * resolving the modulo node
-             */
-            resolve_modulo_node(node, traverse_mark_number, netlist);
-            break;
-        }
+        // case MODULO: {
+        //     /**
+        //      * resolving the modulo node
+        //      */
+        //     resolve_modulo_node(node, traverse_mark_number, netlist);
+        //     break;
+        // }
         case DIVIDE: {
             /**
              * resolving the divide node
