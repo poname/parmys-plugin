@@ -386,7 +386,7 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$or", SKIP},	  // (A, B, Y)
   {"$pmux", SKIP},	  // (A, B, S, Y)
   {"$pos", SKIP},	  // (A, Y)
-  {"$pow", POWER},	  // (A, B, Y)
+  {"$pow", SKIP},	  // (A, B, Y)
   {"$reduce_and", SKIP},  // (A, Y)
   {"$reduce_bool", SKIP}, // (A, Y)
   {"$reduce_or", SKIP},	  // (A, Y)

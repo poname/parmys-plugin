@@ -54,7 +54,6 @@ SOURCES = parmys.cc \
 		  VerilogWriter.cc \
 		  BLIFElaborate.cc \
 		  Hashtable.cc \
-		  Division.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \
 		  ../third_party/libvtrutil/src/vtr_token.cc \
 		  ../third_party/libvtrutil/src/vtr_memory.cc \

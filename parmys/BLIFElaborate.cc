@@ -53,7 +53,7 @@
 // #include "LogicalOps.hpp"
 #include "memories.h"
 #include "adders.h"
-#include "Division.hpp"
+// #include "Division.hpp"
 // #include "Latch.hpp"
 // #include "Power.hpp"
 // #include "FlipFlop.hpp"
@@ -200,18 +200,18 @@ void depth_first_traverse_blif_elaborate(nnode_t* node, uintptr_t traverse_mark_
  *--------------------------------------------------------------------*/
 void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlist) {
     switch (node->type) {
-        // case GTE:           //fallthrough
-        // case LTE:           //fallthrough
-        // case GT:            //fallthrough
-        // case LT:            //fallthrough
-        // case LOGICAL_OR:    //fallthrough
-        // case LOGICAL_AND:   //fallthrough
-        // case LOGICAL_NOT:   //fallthrough
-        // case LOGICAL_NOR:   //fallthrough
-        // case LOGICAL_NAND:  //fallthrough
-        // case LOGICAL_XOR:   //fallthrough
-        // case LOGICAL_XNOR:  //fallthrough
-        // case LOGICAL_EQUAL: //fallthrough
+        // case GTE:           
+        // case LTE:           
+        // case GT:            
+        // case LT:            
+        // case LOGICAL_OR:    
+        // case LOGICAL_AND:   
+        // case LOGICAL_NOT:   
+        // case LOGICAL_NOR:   
+        // case LOGICAL_NAND:  
+        // case LOGICAL_XOR:   
+        // case LOGICAL_XNOR:  
+        // case LOGICAL_EQUAL: 
         // case NOT_EQUAL: {
         //     /** 
         //      * to make sure they have only one output pin for partial mapping phase 
@@ -219,9 +219,9 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_logical_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        // case SL:  //fallthrough
-        // case SR:  //fallthrough
-        // case ASL: //fallthrough
+        // case SL:  
+        // case SR:  
+        // case ASL: 
         // case ASR: {
         //     /**
         //      * resolving the shift nodes by making
@@ -230,7 +230,7 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_shift_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        // case CASE_EQUAL: //fallthorugh
+        // case CASE_EQUAL: 
         // case CASE_NOT_EQUAL: {
         //     /**
         //      * resolving case equal and not equal nodes by
@@ -238,20 +238,21 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_case_equal_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        case ADD:      //fallthrough
-        case MINUS:    //fallthorugh
-        case MULTIPLY: //fallthrough
-        // case POWER:    //fallthrough
-        // case MODULO:   //fallthrough
-        case DIVIDE: {
+
+        // case POWER:    
+        // case MODULO:   
+        // case DIVIDE: 
+        case ADD:      
+        case MINUS:    
+        case MULTIPLY: {
             /**
              * resolving the arithmetic node by
              */
             resolve_arithmetic_nodes(node, traverse_number, netlist);
             break;
         }
-        // case SETCLR: //fallthorugh
-        // case DLATCH: //fallthorugh
+        // case SETCLR: 
+        // case DLATCH: 
         // case ADLATCH: {
         //     /**
         //      * resolving the latch nodes
@@ -259,12 +260,12 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_latch_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        // case FF_NODE: //fallthrough
-        // case SDFF:    //fallthrough
-        // case DFFE:    //fallthrough
-        // case SDFFE:   //fallthrough
-        // case SDFFCE:  //fallthrough
-        // case DFFSR:   //fallthrough
+        // case FF_NODE: 
+        // case SDFF:    
+        // case DFFE:    
+        // case SDFFE:   
+        // case SDFFCE:  
+        // case DFFSR:   
         // case DFFSRE: {
         //     /**
         //      * resolving flip flop nodes 
@@ -272,11 +273,11 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_ff_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        // case PMUX:            //fallthrough
-        // case MUX_2:           //fallthrough
-        // case SMUX_2:          //fallthrough
-        // case MULTI_PORT_MUX:  //fallthrough
-        // case MULTI_BIT_MUX_2: //fallthorugh
+        // case PMUX:            
+        // case MUX_2:           
+        // case SMUX_2:          
+        // case MULTI_PORT_MUX:  
+        // case MULTI_BIT_MUX_2: 
         // case MULTIPORT_nBIT_SMUX: {
         //     /**
         //      * resolving multiplexer nodes which
@@ -284,12 +285,12 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_mux_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        case SPRAM: //fallthrough
-        case DPRAM: //fallthrough
-        case ROM:   //fallthrough
-        case BRAM:  //fallthrough
-        case YMEM:  //fallthrough
-        case YMEM2: //fallthrough
+        case SPRAM: 
+        case DPRAM: 
+        case ROM:   
+        case BRAM:  
+        case YMEM:  
+        case YMEM2: 
         case MEMORY: {
             /**
              * resolving memory nodes based on the given architecture
@@ -297,19 +298,19 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
             resolve_memory_nodes(node, traverse_number, netlist);
             break;
         }
-        case GND_NODE:     //fallthrough
-        case VCC_NODE:     //fallthrough
-        case PAD_NODE:     //fallthrough
-        case INPUT_NODE:   //fallthrough
-        case OUTPUT_NODE:  //fallthrough
-        case HARD_IP:      //fallthrough
-        case BUF_NODE:     //fallthrough
-        case BITWISE_NOT:  //fallthrough
-        case BITWISE_AND:  //fallthrough
-        case BITWISE_OR:   //fallthrough
-        case BITWISE_NAND: //fallthrough
-        case BITWISE_NOR:  //fallthrough
-        case BITWISE_XNOR: //fallthrough
+        case GND_NODE:     
+        case VCC_NODE:     
+        case PAD_NODE:     
+        case INPUT_NODE:   
+        case OUTPUT_NODE:  
+        case HARD_IP:      
+        case BUF_NODE:     
+        case BITWISE_NOT:  
+        case BITWISE_AND:  
+        case BITWISE_OR:   
+        case BITWISE_NAND: 
+        case BITWISE_NOR:  
+        case BITWISE_XNOR: 
         case BITWISE_XOR: {
             /* some are already resolved for this phase */
             break;
@@ -391,13 +392,13 @@ static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_numb
         //     resolve_modulo_node(node, traverse_mark_number, netlist);
         //     break;
         // }
-        case DIVIDE: {
-            /**
-             * resolving the divide node
-             */
-            resolve_divide_node(node, traverse_mark_number, netlist);
-            break;
-        }
+        // case DIVIDE: {
+        //     /**
+        //      * resolving the divide node
+        //      */
+        //     resolve_divide_node(node, traverse_mark_number, netlist);
+        //     break;
+        // }
         default: {
             error_message(BLIF_ELABORATION, node->loc,
                           "The node(%s) type is not among Odin's arithmetic types [ADD, MINUS and MULTIPLY]\n", node->name);
