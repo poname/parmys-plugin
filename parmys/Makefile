@@ -46,7 +46,6 @@ SOURCES = parmys.cc \
 		  netlist_visualizer.cc \
 		  simulate_blif.cc \
 		  parse_making_ast.cc \
-		  GenericIO.cc \
 		  BLIFElaborate.cc \
 		  Hashtable.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \
