@@ -65,7 +65,7 @@
 #include "HardSoftLogicMixer.hpp"
 
 // #include "GenericReader.hpp"
-#include "BLIF.hpp"
+// #include "BLIF.hpp"
 
 #define DEFAULT_OUTPUT "."
 
