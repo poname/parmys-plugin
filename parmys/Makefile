@@ -16,7 +16,7 @@
 
 NAME = parmys
 SOURCES = parmys.cc \
-		  DesignWriter.cc \
+		  DesignUpdate.cc \
 		  yosys_utils.cc \
 		  adders.cc \
 		  enum_str.cc \
@@ -44,7 +44,6 @@ SOURCES = parmys.cc \
 		  implicit_memory.cc \
 		  scope_util.cc \
 		  netlist_visualizer.cc \
-		  simulate_blif.cc \
 		  parse_making_ast.cc \
 		  Resolve.cc \
 		  Hashtable.cc \

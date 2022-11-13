@@ -370,10 +370,9 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$lut", SKIP},	     // (A, Y)
   {"$macc", SKIP},	     // (A, B, Y)
   {"$mem", YMEM},
-  // {"$mem_v2", SKIP},	  //@TODO                          // (RD_CLK, RD_EN, RD_ADDR, RD_DATA, WR_CLK, WR_EN, WR_ADDR, WR_DATA)
   {"$mem_v2", YMEM2},
   {"$meminit", SKIP},	  // (ADDR, DATA)
-  {"$memrd", ROM},	  // (CLK, EN, ADDR, DATA)
+  {"$memrd", SKIP},	  // (CLK, EN, ADDR, DATA)
   {"$memwr", SKIP},	  // (CLK, EN, ADDR, DATA)
   {"$mod", SKIP},	  // (A, B, Y)
   {"$modfloor", SKIP},	  // (A, B, Y)
@@ -411,9 +410,7 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$tribuf", SKIP},	  // (A, EN, Y)
   {"$xnor", SKIP},	  // (A, B, Y)
   {"$xor", SKIP},	  // (A, B, Y)
-  /***************** Odin techlib START **************/
-  {"_$ROM", ROM},   // (in, out)
-  {"_$BRAM", BRAM}, // (in, out)
+
   /*********** VTR Primitive modules START ***********/
   {"LUT_K", SKIP},			     // (in, out)
   {"DFF", FF_NODE},			     // (clock, D, Q)

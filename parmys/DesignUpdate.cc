@@ -46,7 +46,7 @@
 #include "subtractions.h"
 
 // #include "BLIF.hpp"
-#include "DesignWriter.hpp"
+#include "DesignUpdate.hpp"
 #include "kernel/rtlil.h"
 #include "yosys_utils.hpp"
 

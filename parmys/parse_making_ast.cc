@@ -33,7 +33,7 @@
 #include "ast_util.h"
 #include "parse_making_ast.h"
 #include "string_cache.h"
-#include "verilog_bison_user_defined.h"
+// #include "verilog_bison_user_defined.h"
 // #include "verilog_bison.h"
 #include "hard_blocks.h"
 #include "vtr_util.h"

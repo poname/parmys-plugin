@@ -199,14 +199,6 @@ static void resolve_memory_nodes(nnode_t* node, uintptr_t traverse_mark_number, 
             resolve_dual_port_ram(node, traverse_mark_number, netlist);
             break;
         }
-        case ROM: {
-            resolve_rom_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case BRAM: {
-            resolve_bram_node(node, traverse_mark_number, netlist);
-            break;
-        }
         case YMEM: {
             resolve_ymem_node(node, traverse_mark_number, netlist);
             break;

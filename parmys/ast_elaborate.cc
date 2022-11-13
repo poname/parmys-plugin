@@ -37,7 +37,7 @@
 #include "multipliers.h"
 #include "odin_util.h"
 #include "parse_making_ast.h"
-#include "verilog_bison.h"
+// #include "verilog_bison.h"
 #include "netlist_create_from_ast.h"
 #include "netlist_utils.h"
 #include "ctype.h"
