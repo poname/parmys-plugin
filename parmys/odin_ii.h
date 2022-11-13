@@ -17,7 +17,7 @@ enum ODIN_ERROR_CODE {
     ERROR_OUTPUT
 };
 
-netlist_t* start_odin_ii(int argc, char** argv);
+// netlist_t* start_odin_ii(int argc, char** argv);
 int terminate_odin_ii(netlist_t* odin_netlist);
 
 void set_default_config();

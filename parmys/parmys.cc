@@ -35,8 +35,8 @@
 
 #include "partial_map.h"
 
-#include "GenericReader.hpp"
-#include "GenericWriter.hpp"
+// #include "GenericReader.hpp"
+// #include "GenericWriter.hpp"
 
 #include "netlist_visualizer.h"
 
@@ -54,7 +54,8 @@
 #include "subtractions.h"
 
 #include "DesignWriter.hpp"
-#include "Verilog.hpp"
+// #include "Verilog.hpp"
+#include "ast_util.h"
 #include "yosys_utils.hpp"
 
 USING_YOSYS_NAMESPACE

@@ -44,14 +44,9 @@ SOURCES = parmys.cc \
 		  implicit_memory.cc \
 		  scope_util.cc \
 		  netlist_visualizer.cc \
-		  GenericReader.cc \
-		  GenericWriter.cc \
 		  simulate_blif.cc \
 		  parse_making_ast.cc \
 		  GenericIO.cc \
-		  Verilog.cc \
-		  VerilogReader.cc \
-		  VerilogWriter.cc \
 		  BLIFElaborate.cc \
 		  Hashtable.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \
