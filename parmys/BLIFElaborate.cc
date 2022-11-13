@@ -56,7 +56,7 @@
 #include "Division.hpp"
 // #include "Latch.hpp"
 // #include "Power.hpp"
-#include "FlipFlop.hpp"
+// #include "FlipFlop.hpp"
 #include "Shift.hpp"
 // #include "Modulo.hpp"
 // #include "CaseEqual.hpp"
@@ -78,7 +78,7 @@ static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, n
 static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 // static void resolve_latch_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-static void resolve_ff_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+// static void resolve_ff_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_memory_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 
 /*******************************************************************************************************
@@ -259,19 +259,19 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_latch_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        case FF_NODE: //fallthrough
-        case SDFF:    //fallthrough
-        case DFFE:    //fallthrough
-        case SDFFE:   //fallthrough
-        case SDFFCE:  //fallthrough
-        case DFFSR:   //fallthrough
-        case DFFSRE: {
-            /**
-             * resolving flip flop nodes 
-             */
-            resolve_ff_nodes(node, traverse_number, netlist);
-            break;
-        }
+        // case FF_NODE: //fallthrough
+        // case SDFF:    //fallthrough
+        // case DFFE:    //fallthrough
+        // case SDFFE:   //fallthrough
+        // case SDFFCE:  //fallthrough
+        // case DFFSR:   //fallthrough
+        // case DFFSRE: {
+        //     /**
+        //      * resolving flip flop nodes 
+        //      */
+        //     resolve_ff_nodes(node, traverse_number, netlist);
+        //     break;
+        // }
         case PMUX:            //fallthrough
         case MUX_2:           //fallthrough
         case SMUX_2:          //fallthrough
@@ -534,78 +534,6 @@ static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, net
         default: {
             error_message(BLIF_ELABORATION, node->loc,
                           "The node(%s) type (%s) is not among Odin's latch types [PMUX, MULTIPORT_nBIT_SMUX, MULTI_BIT_MUX_2, MUX_2, MULTI_PORT_MUX]\n", node->name, node->type);
-            break;
-        }
-    }
-}
-
-/**
- *-------------------------------------------------------------------------------------------
- * (function: resolve_ff_nodes )
- * 
- * @brief resolving flip flop nodes by exploding them into low-level
- * logic with set, reset, and clear signals (synchronous)
- * 
- * @param node pointing to the netlist node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- *-----------------------------------------------------------------------------------------*/
-static void resolve_ff_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist) {
-    oassert(node->traverse_visited == traverse_mark_number);
-
-    switch (node->type) {
-        case FF_NODE: {
-            /**
-             * resolving the dff node
-             */
-            resolve_dff_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case SDFF: {
-            /**
-             * resolving a dff node with reset value
-             */
-            resolve_sdff_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case DFFE: {
-            /**
-             * resolving a dff node with enable
-             */
-            resolve_dffe_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case SDFFE: {
-            /**
-             * resolving a dff node with enable and srst
-             */
-            resolve_sdffe_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case SDFFCE: {
-            /**
-             * resolving a dff node with srst and enable for both output and reset
-             */
-            resolve_sdffce_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case DFFSR: {
-            /**
-             * resolving a dff node with set and reset
-             */
-            resolve_dffsr_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case DFFSRE: {
-            /**
-             * resolving a dff node with set and reset and enable
-             */
-            resolve_dffsre_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        default: {
-            error_message(BLIF_ELABORATION, node->loc,
-                          "The node(%s) type (%s) is not among Odin's latch types [dff, adff, sdff, dffe, adffe, sdffe, dffsr, dffsre]\n", node->name, node->type);
             break;
         }
     }
