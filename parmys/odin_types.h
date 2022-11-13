@@ -25,7 +25,7 @@
  */
 
 #include "string_cache.h"
-#include "hierarchy_util.h"
+ #include "hierarchy_util.h"
 #include "scope_util.h"
 #include "odin_error.h"
 #include "read_xml_arch_file.h"
@@ -428,7 +428,6 @@ struct stat_t {
 struct typ {
     char* identifier;
     VNumber* vnumber = nullptr;
-    sc_hierarchy* hierarchy;
     sc_scope* scope;
     struct
     {

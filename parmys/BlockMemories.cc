@@ -39,7 +39,7 @@
 #include "odin_globals.h"
 #include "odin_types.h"
 #include "odin_util.h"
-#include "ast_util.h"
+// #include "ast_util.h"
 
 #include "netlist_utils.h"
 #include "node_creation_library.h"

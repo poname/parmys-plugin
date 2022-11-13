@@ -32,9 +32,4 @@ struct sc_hierarchy {
     int num_unnamed_genblks;
 };
 
-sc_hierarchy* init_sc_hierarchy();
-sc_hierarchy* copy_sc_hierarchy(sc_hierarchy* to_copy);
-void free_sc_hierarchy(sc_hierarchy* to_free);
-ast_node_t* resolve_hierarchical_name_reference(sc_hierarchy* local_ref, char* identifier);
-
 #endif

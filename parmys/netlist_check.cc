@@ -29,7 +29,7 @@
 
 #include "netlist_utils.h"
 #include "odin_util.h"
-#include "ast_util.h"
+// #include "ast_util.h"
 #include "string_cache.h"
 #include "netlist_check.h"
 #include "netlist_visualizer.h"

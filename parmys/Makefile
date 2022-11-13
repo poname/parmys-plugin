@@ -33,18 +33,14 @@ SOURCES = parmys.cc \
 		  subtractions.cc \
 		  HardSoftLogicMixer.cc \
 		  odin_ii.cc \
-		  netlist_create_from_ast.cc \
 		  string_cache.cc \
 		  partial_map.cc \
 		  hard_blocks.cc \
 		  BlockMemories.cc \
 		  memories.cc \
-		  hierarchy_util.cc \
-		  ast_util.cc \
 		  implicit_memory.cc \
 		  scope_util.cc \
 		  netlist_visualizer.cc \
-		  parse_making_ast.cc \
 		  Resolve.cc \
 		  Hashtable.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \
