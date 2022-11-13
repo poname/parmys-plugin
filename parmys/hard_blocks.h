@@ -29,19 +29,9 @@
 extern STRING_CACHE* hard_block_names;
 
 void register_hard_blocks();
-void deregister_hard_blocks();
 t_model* find_hard_block(const char* name);
-void define_subckt_block(nnode_t* node, FILE* out);
-void define_lut_block(nnode_t* node, FILE* out);
-void define_sop_block(nnode_t* node, FILE* out);
-void define_hard_block(nnode_t* node, FILE* out);
 void cell_hard_block(nnode_t* node, Yosys::Module* module, Yosys::Design* design);
-void define_skip_block_yosys(nnode_t* node, FILE* out);
-void define_required_yosys_params(nnode_t* node, FILE* out);
-void output_hard_blocks(FILE* out);
 void output_hard_blocks_yosys(Yosys::Design* design);
-int hard_block_port_size(t_model* hb, char* pname);
-enum PORTS hard_block_port_direction(t_model* hb, char* pname);
 void instantiate_hard_block(nnode_t* node, short mark, netlist_t* netlist);
 t_model_ports* get_model_port(t_model_ports* ports, const char* name);
 

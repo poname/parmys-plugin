@@ -31,7 +31,7 @@
 
 #include <unordered_map>
 
-const int REG_INFERENCE_THRESHOLD_MAX = 80;     // Max number of bits for register of array inference
+// Max number of bits for register of array inference
 const int LUTRAM_INFERENCE_THRESHOLD_MIN = 80;  // Max number of bits for LUTRAM inference
 const int LUTRAM_INFERENCE_THRESHOLD_MAX = 640; // Min number of bits for LUTRAM inference
 
@@ -58,7 +58,6 @@ struct block_memory_t {
 };
 
 typedef std::unordered_map<std::string, block_memory_t*> block_memory_hashtable;
-extern block_memory_hashtable block_memories;
 
 /**
  * block memories information. variable will be invalid
@@ -89,7 +88,6 @@ struct block_memory_information_t {
 extern block_memory_information_t block_memories_info;
 
 extern void init_block_memory_index();
-extern block_memory_t* lookup_block_memory(char* instance_name_prefix, char* identifier);
 extern void free_block_memories();
 
 extern void resolve_ymem_node(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);

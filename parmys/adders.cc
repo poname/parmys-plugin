@@ -21,28 +21,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
 #include "adders.h"
 #include "netlist_utils.h"
 #include "node_creation_library.h"
 #include "odin_globals.h"
 #include "odin_types.h"
 #include "odin_util.h"
-#include "partial_map.h"
-#include "read_xml_arch_file.h"
-
 #include "multipliers.h"
 #include "subtractions.h"
 
 #include "vtr_memory.h"
 #include "vtr_util.h"
 
-#include "vtr_list.h"
 #include "yosys_utils.hpp"
 
 using vtr::t_linked_vptr;
@@ -58,7 +49,6 @@ int min_threshold_adder = 0;
 
 netlist_t *the_netlist;
 
-void record_add_distribution(nnode_t *node);
 void init_split_adder(nnode_t *node, nnode_t *ptr, int a, int sizea, int b, int sizeb, int cin, int cout, int index, int flag, netlist_t *netlist);
 static void cleanup_add_old_node(nnode_t *nodeo, netlist_t *netlist);
 
@@ -73,21 +63,6 @@ void init_add_distribution()
 	int len = hard_adders->inputs->size + hard_adders->inputs->next->size + 1;
 	adder = (int *)vtr::calloc(len, sizeof(int));
 }
-
-/*---------------------------------------------------------------------------
- * (function: record_add_distribution)
- *-------------------------------------------------------------------------*/
-void record_add_distribution(nnode_t *node)
-{
-	oassert(hard_adders != NULL);
-	oassert(node != NULL);
-	adder[hard_adders->inputs->size] += 1;
-	return;
-}
-
-/*---------------------------------------------------------------------------
- * (function: report_add_distribution)
- *-------------------------------------------------------------------------*/
 
 /* These values are collected during the unused logic removal sweep */
 extern long adder_chain_count;
@@ -224,92 +199,6 @@ void instantiate_hard_adder(nnode_t *node, short mark, netlist_t * /*netlist*/)
 /*----------------------------------------------------------------------------
  * function: add_the_blackbox_for_adds()
  *--------------------------------------------------------------------------*/
-void add_the_blackbox_for_adds(FILE *out)
-{
-	int i;
-	int count;
-	int hard_add_inputs, hard_add_outputs;
-	t_adder *adds;
-	t_model_ports *ports;
-	char buffer[MAX_BUF];
-	char *pa, *pb, *psumout, *pcin, *pcout;
-
-	/* Check to make sure this target architecture has hard adders */
-	if (hard_adders == NULL)
-		return;
-
-	/* Get the names of the ports for the adder */
-	ports = hard_adders->inputs;
-	pcin = ports->name;
-	ports = ports->next;
-	pb = ports->name;
-	ports = ports->next;
-	pa = ports->name;
-
-	ports = hard_adders->outputs;
-	psumout = ports->name;
-	ports = ports->next;
-	pcout = ports->name;
-
-	/* find the adder devices in the tech library */
-	adds = (t_adder *)(hard_adders->instances);
-	if (adds == NULL) /* No adders instantiated */
-		return;
-
-	/* simplified way of getting the multsize, but fine for quick example */
-	while (adds != NULL) {
-		/* write out this adder model TODO identical branches ?*/
-		// if (configuration.fixed_hard_adder != 0)
-		// 	count = fprintf(out, ".model adder\n");
-		// else
-		count = fprintf(out, ".model adder\n");
-
-		/* add the inputs */
-		count = count + fprintf(out, ".inputs");
-		hard_add_inputs = adds->size_a + adds->size_b + adds->size_cin;
-		for (i = 0; i < hard_add_inputs; i++) {
-			if (i < adds->size_a) {
-				count = count + odin_sprintf(buffer, " %s[%d]", pa, i);
-			} else if (i < hard_add_inputs - adds->size_cin && i >= adds->size_a) {
-				count = count + odin_sprintf(buffer, " %s[%d]", pb, i - adds->size_a);
-			} else {
-				count = count + odin_sprintf(buffer, " %s[%d]", pcin, i - adds->size_a - adds->size_b);
-			}
-			if (count > 78)
-				count = fprintf(out, " \\\n %s", buffer) - 3;
-			else
-				fprintf(out, " %s", buffer);
-		}
-		fprintf(out, "\n");
-
-		/* add the outputs */
-		count = fprintf(out, ".outputs");
-		hard_add_outputs = adds->size_cout + adds->size_sumout;
-		for (i = 0; i < hard_add_outputs; i++) {
-			if (i < adds->size_cout) {
-				count = count + odin_sprintf(buffer, " %s[%d]", pcout, i);
-			} else {
-				count = count + odin_sprintf(buffer, " %s[%d]", psumout, i - adds->size_cout);
-			}
-
-			if (count > 78) {
-				fprintf(out, " \\\n%s", buffer);
-				count = strlen(buffer);
-			} else
-				fprintf(out, "%s", buffer);
-		}
-		fprintf(out, "\n");
-		fprintf(out, ".blackbox\n");
-		fprintf(out, ".end\n");
-		fprintf(out, "\n");
-
-		adds = adds->next;
-	}
-}
-
-/*----------------------------------------------------------------------------
- * function: add_the_blackbox_for_adds()
- *--------------------------------------------------------------------------*/
 void add_the_blackbox_for_adds_yosys(Yosys::Design *design)
 {
 
@@ -405,77 +294,6 @@ void add_the_blackbox_for_adds_yosys(Yosys::Design *design)
 
 		adds = adds->next;
 	}
-}
-
-/*-------------------------------------------------------------------------
- * (function: define_add_function)
- *-----------------------------------------------------------------------*/
-void define_add_function(nnode_t *node, FILE *out)
-{
-	int i, j;
-	int count;
-	char buffer[MAX_BUF];
-
-	count = fprintf(out, "\n.subckt");
-	count--;
-	oassert(node->input_port_sizes[0] > 0);
-	oassert(node->input_port_sizes[1] > 0);
-	oassert(node->input_port_sizes[2] > 0);
-	oassert(node->output_port_sizes[0] > 0);
-	oassert(node->output_port_sizes[1] > 0);
-
-	/* Write out th	bec_csla 	= 3 	// binary to excess carry Select Addere model adder  */
-	count += fprintf(out, " adder");
-
-	/* Write the input pins*/
-	for (i = 0; i < node->num_input_pins; i++) {
-		oassert(node->input_pins[i]->net->num_driver_pins == 1);
-		npin_t *driver_pin = node->input_pins[i]->net->driver_pins[0];
-
-		if (i < node->input_port_sizes[0]) {
-			if (!driver_pin->name)
-				j = odin_sprintf(buffer, " %s[%d]=%s", hard_adders->inputs->next->next->name, i, driver_pin->node->name);
-			else
-				j = odin_sprintf(buffer, " %s[%d]=%s", hard_adders->inputs->next->next->name, i, driver_pin->name);
-		} else if (i >= node->input_port_sizes[0] && i < node->input_port_sizes[1] + node->input_port_sizes[0]) {
-			if (!driver_pin->name)
-				j = odin_sprintf(buffer, " %s[%d]=%s", hard_adders->inputs->next->name, i - node->input_port_sizes[0],
-						 driver_pin->node->name);
-			else
-				j = odin_sprintf(buffer, " %s[%d]=%s", hard_adders->inputs->next->name, i - node->input_port_sizes[0],
-						 driver_pin->name);
-		} else {
-			if (!driver_pin->name)
-				j = odin_sprintf(buffer, " %s[%d]=%s", hard_adders->inputs->name,
-						 i - (node->input_port_sizes[0] + node->input_port_sizes[1]), driver_pin->node->name);
-			else
-				j = odin_sprintf(buffer, " %s[%d]=%s", hard_adders->inputs->name,
-						 i - (node->input_port_sizes[0] + node->input_port_sizes[1]), driver_pin->name);
-		}
-
-		if (count + j > 79) {
-			fprintf(out, "\\\n");
-			count = 0;
-		}
-		count += fprintf(out, "%s", buffer);
-	}
-
-	/* Write the output pins*/
-	for (i = 0; i < node->num_output_pins; i++) {
-		if (i < node->output_port_sizes[0])
-			j = odin_sprintf(buffer, " %s[%d]=%s", hard_adders->outputs->next->name, i, node->output_pins[i]->name);
-		else
-			j =
-			  odin_sprintf(buffer, " %s[%d]=%s", hard_adders->outputs->name, i - node->output_port_sizes[0], node->output_pins[i]->name);
-		if (count + j > 79) {
-			fprintf(out, "\\\n");
-			count = 0;
-		}
-		count += fprintf(out, "%s", buffer);
-	}
-
-	fprintf(out, "\n\n");
-	return;
 }
 
 void define_add_function_yosys(nnode_t *node, Yosys::Module *module, Yosys::Design *design)

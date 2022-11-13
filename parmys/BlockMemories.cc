@@ -35,11 +35,7 @@
  */
 
 #include <string.h>
-#include <math.h>
-#include "odin_globals.h"
-#include "odin_types.h"
 #include "odin_util.h"
-// #include "ast_util.h"
 
 #include "netlist_utils.h"
 #include "node_creation_library.h"
@@ -95,31 +91,10 @@ void init_block_memory_index() {
 }
 
 /**
- * (function: lookup_block_memory)
- * 
- * @brief Looks up an block memory by identifier name in the block memory lookup table.
- * 
- * @param instance_name_prefix memory node name (unique hard block node name)
- * @param identifier memory block id
- */
-block_memory_t* lookup_block_memory(char* instance_name_prefix, char* identifier) {
-    char* memory_string = make_full_ref_name(instance_name_prefix, NULL, NULL, identifier, -1);
-
-    block_memory_hashtable::const_iterator mem_out = block_memories_info.block_memories.find(std::string(memory_string));
-
-    vtr::free(memory_string);
-
-    if (mem_out == block_memories_info.block_memories.end())
-        return (NULL);
-    else
-        return (mem_out->second);
-}
-
-/**
  * (function: init_block_memory)
- * 
+ *
  * @brief: initialize bram signals
- * 
+ *
  * @param node pointing to a bram node
  * @param netlist pointer to the current netlist file
  */
