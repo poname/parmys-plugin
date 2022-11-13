@@ -46,7 +46,7 @@
 #include "memories.h"
 #include "adders.h"
 #include "subtractions.h"
-#include "Multiplexer.hpp"
+// #include "Multiplexer.hpp"
 #include "vtr_memory.h"
 #include "vtr_util.h"
 
@@ -230,9 +230,9 @@ void partial_map_node(nnode_t* node, short traverse_number, netlist_t* netlist) 
         case MULTI_PORT_MUX:
             instantiate_multi_port_mux(node, traverse_number, netlist);
             break;
-        case MULTIPORT_nBIT_SMUX:
-            instantiate_multi_port_n_bits_mux(node, traverse_number, netlist);
-            break;
+        // case MULTIPORT_nBIT_SMUX:
+        //     instantiate_multi_port_n_bits_mux(node, traverse_number, netlist);
+        //     break;
         case MULTIPLY: {
             mixer->partial_map_node(node, traverse_number, netlist);
             break;
@@ -280,6 +280,7 @@ void partial_map_node(nnode_t* node, short traverse_number, netlist_t* netlist) 
         case CASE_NOT_EQUAL:
         case DIVIDE:
         case MODULO:
+        case MULTIPORT_nBIT_SMUX:
         default:
             error_message(NETLIST, node->loc, "%s", "Partial map: node should have been converted to softer version.");
             break;
@@ -333,213 +334,6 @@ void instantiate_multi_port_mux(nnode_t* node, short mark, netlist_t* /*netlist*
     }
     vtr::free(muxes);
     free_nnode(node);
-}
-
-/**
- * (function: instantiate_multi_port_n_bits_mux)
- * 
- * @brief Makes the multiport n bits multiplexer into
- * a series of 2-Mux-decoded
- * 
- * [NOTE]: Selector should be the first port
- * 
- * @param node pointing to the mux node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- */
-void instantiate_multi_port_n_bits_mux(nnode_t* node, short mark, netlist_t* netlist) {
-    int i, j;
-
-    char* name = vtr::strdup(node->name);
-    int num_single_muxes = node->num_output_pins;
-    /* This split the multiport n bit mux node into multiport 1 bit muxes*/
-    nnode_t** single_bit_muxes = transform_to_single_bit_mux_nodes(node, mark, netlist);
-
-    int cnt;
-    /* iterating over single bit muxes that has multiple (>2) port to turn them into 2-mux */
-    for (cnt = 0; cnt < num_single_muxes; cnt++) {
-        nnode_t* single_bit_mux = single_bit_muxes[cnt];
-        /**
-         ***************************************** <SINLGE BIT MUX> **************************************
-         *                                                                                               *
-         *                                       SEL                                                     *
-         *                                        |                                                      *
-         *                                        / log(n) bits                                          *
-         *                                      |\|                                                      *
-         *                               1 bit  | \                                                      *
-         *                           in1 --'--> |1 \                                                     *
-         *                           in2 --'--> |1  |                                                    *
-         *                           in3 --'--> |1  |                                                    *
-         *                           in4 --'--> |1  |                                                    *
-         *                           in5 --'--> |1  |     1 bit                                          *
-         *                           in6 --'--> |1  | ------'------>                                     *
-         *                           in7 --'--> |1  |                                                    *
-         *                           in8 --'--> |1  |                                                    *
-         *                           in9 --'--> |1  |                                                    *
-         *                                ...   |.. |                                                    *
-         *                           inN  ...   |n  |                                                    *
-         *                                      | /                                                      *
-         *                                      |/                                                       *
-         *                                                                                               *
-         *                                                                                               *
-         ********************************************* <2-MUX-decoded> ***********************************
-         *                                                                                               *
-         *                                 S[0]                                                          *
-         *                                |\|                                                            *
-         *                                | \                                                            *
-         *                         1 ---  |0:|                                                           *
-         *                                |  | --                                                        *
-         *                   (n/2)+1 ---  |1:|               S[0]                                        *
-         *                                | /               |\|                                          *
-         *                                |/                | \                                          *
-         *                                             ---  |0:|                                         *
-         *                                                  |  | --                                      *
-         *                                 S[0]        ---  |1:|                                         *
-         *                                |\|               | /                                          *
-         *                                | \               |/                                           *
-         *                         2 ---  |0:|                                                           *
-         *                                |  | --                                                        *
-         *                   (n/2)+2 ---  |1:|                                S[0]                       *
-         *                                | /                                |\|                         *
-         *                                |/                                 | \                         *
-         *                                                              ---  |0:|                        *
-         *                                                                   |  | --                     *
-         *                                 S[0]                         ---  |1:|                        *
-         *                                |\|                                | /                         *
-         *                                | \                                |/                          *
-         *                         3 ---  |0:|                                                           *
-         *                                |  | --                                                        *
-         *                   (n/2)+3 ---  |1:|              S[0]                                         *
-         *                                | /              |\|                                           *
-         *                                |/               | \                                           *
-         *                                            ---  |0:|                                          *
-         *                                                 |  | --                                       *
-         *                                 S[0]       ---  |1:|                                          *
-         *                                |\|              | /                                           *
-         *                                | \              |/                                            *
-         *                         4 ---  |0:|                                                           *
-         *                                |  | --                                                        *
-         *                   (n/2)+4 ---  |1:|                                                           *
-         *                                | /                                                            *
-         *                                |/                                                             *
-         *                                                                                               *
-         *                                ...              ...              ...                          *
-         *                                                                                               *
-         *                                ...              ...              ...                          *
-         *                                                                                               *
-         *                                ...              ...              ...                          *
-         *************************************************************************************************/
-
-        /* keeping the information of each single bit mux */
-        int num_expressions = single_bit_mux->num_input_port_sizes - 1;
-        int port_offset = single_bit_mux->input_port_sizes[0];
-        int selector_width = single_bit_mux->input_port_sizes[0];
-
-        /* need to reorder to turn to a smux, nothing more */
-        if (selector_width == 1 && num_expressions == 2) {
-            single_bit_mux->type = SMUX_2;
-            if (single_bit_mux->name)
-                vtr::free(single_bit_mux->name);
-
-            single_bit_mux->name = node_name(single_bit_mux, name);
-        } else {
-            nnode_t*** muxes = (nnode_t***)vtr::calloc(selector_width, sizeof(nnode_t**));
-            /* to keep the internal output signals for future usage */
-            signal_list_t** output_signals = (signal_list_t**)vtr::calloc(selector_width, sizeof(signal_list_t*));
-            /* creating multiple stages to decode single bit mux into 2-mux */
-            for (i = 0; i < selector_width; i++) {
-                /* num of muxes in each stage */
-                int num_of_muxes = shift_left_value_with_overflow_check(0x1, selector_width - (i + 1), single_bit_mux->loc);
-                muxes[i] = (nnode_t**)vtr::calloc(num_of_muxes, sizeof(nnode_t*));
-                output_signals[i] = init_signal_list();
-
-                // single_bit_mux->input_pins[i] === selector[i]
-                npin_t* selector_pin = single_bit_mux->input_pins[selector_width - i - 1];
-
-                /* iterating over each single bit 2-mux to connect inputs */
-                for (j = 0; j < num_of_muxes; j++) {
-                    /*****************************************************************************************
-                     * <SMUX_2>                                                                              *
-                     *                                              SEL PORT                                 *
-                     *                                                 |                                     *
-                     *  Port 1                                         / 1 bits (sel)                        *
-                     *      0: in1                                   |\|                                     *
-                     *      1: in2                            1 bit  | \                                     *
-                     *  Port 2                            in1 --'--> |0 |  1 bit                             *
-                     *      2: sel                                   |  |---'--->                            *
-                     *                                    in2 --'--> |1 |                                    *
-                     *                                               | /                                     *
-                     *                                               |/                                      *
-                     ****************************************************************************************/
-                    muxes[i][j] = make_2port_gate(SMUX_2, 1, 2, 1, single_bit_mux, mark);
-
-                    if (j != num_of_muxes - 1)
-                        add_input_pin_to_node(muxes[i][j], copy_input_npin(selector_pin), 0);
-                    else
-                        remap_pin_to_new_node(selector_pin, muxes[i][j], 0);
-
-                    /* connecting the single bit mux input pins into decoded 2-Muxes */
-                    if (i == 0) {
-                        remap_pin_to_new_node(single_bit_mux->input_pins[port_offset + j],
-                                              muxes[i][j],
-                                              1);
-
-                        remap_pin_to_new_node(single_bit_mux->input_pins[port_offset + j + (num_expressions / 2)],
-                                              muxes[i][j],
-                                              2);
-                    }
-                    /* connecting the outputs of internal 2-muxes to next level 2-muxes as input */
-                    else {
-                        add_input_pin_to_node(muxes[i][j],
-                                              output_signals[i - 1]->pins[j],
-                                              1);
-
-                        add_input_pin_to_node(muxes[i][j],
-                                              output_signals[i - 1]->pins[j + num_of_muxes],
-                                              2);
-                    }
-
-                    // Connect output pin to related input pin
-                    if (i != selector_width - 1) {
-                        npin_t* new_pin1 = allocate_npin();
-                        npin_t* new_pin2 = allocate_npin();
-                        nnet_t* new_net = allocate_nnet();
-                        new_net->name = make_full_ref_name(NULL, NULL, NULL, muxes[i][j]->name, j);
-                        /* hook the output pin into the node */
-                        add_output_pin_to_node(muxes[i][j], new_pin1, 0);
-                        /* hook up new pin 1 into the new net */
-                        add_driver_pin_to_net(new_net, new_pin1);
-                        /* hook up the new pin 2 to this new net */
-                        add_fanout_pin_to_net(new_net, new_pin2);
-
-                        // Storing the output pins of the current mux stage as the input of the next one
-                        add_pin_to_signal_list(output_signals[i], new_pin2);
-
-                    } else {
-                        remap_pin_to_new_node(single_bit_mux->output_pins[j], muxes[i][j], 0);
-                    }
-                }
-            }
-
-            // CLEAN UP per single mux
-            for (i = 0; i < selector_width; i++) {
-                vtr::free(muxes[i]);
-            }
-            vtr::free(muxes);
-
-            for (i = 0; i < selector_width; i++) {
-                free_signal_list(output_signals[i]);
-            }
-            vtr::free(output_signals);
-
-            // to free each single mux node
-            free_nnode(single_bit_mux);
-        }
-    }
-
-    // CLEAN UP
-    vtr::free(single_bit_muxes);
-    vtr::free(name);
 }
 
 /*---------------------------------------------------------------------------------------------

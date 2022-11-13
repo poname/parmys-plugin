@@ -57,10 +57,10 @@
 // #include "Latch.hpp"
 // #include "Power.hpp"
 // #include "FlipFlop.hpp"
-#include "Shift.hpp"
+// #include "Shift.hpp"
 // #include "Modulo.hpp"
 // #include "CaseEqual.hpp"
-#include "Multiplexer.hpp"
+// #include "Multiplexer.hpp"
 #include "subtractions.h"
 
 #include "math.h"
@@ -73,10 +73,10 @@ void depth_first_traverse_blif_elaborate(nnode_t* node, uintptr_t traverse_mark_
 void blif_elaborate_node(nnode_t* node, short traverse_mark_number, netlist_t* netlist);
 
 // static void resolve_logical_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+// static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 // static void resolve_case_equal_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+// static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 // static void resolve_latch_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 // static void resolve_ff_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_memory_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
@@ -219,17 +219,17 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_logical_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        case SL:  //fallthrough
-        case SR:  //fallthrough
-        case ASL: //fallthrough
-        case ASR: {
-            /**
-             * resolving the shift nodes by making
-             * the input port sizes the same
-             */
-            resolve_shift_nodes(node, traverse_number, netlist);
-            break;
-        }
+        // case SL:  //fallthrough
+        // case SR:  //fallthrough
+        // case ASL: //fallthrough
+        // case ASR: {
+        //     /**
+        //      * resolving the shift nodes by making
+        //      * the input port sizes the same
+        //      */
+        //     resolve_shift_nodes(node, traverse_number, netlist);
+        //     break;
+        // }
         // case CASE_EQUAL: //fallthorugh
         // case CASE_NOT_EQUAL: {
         //     /**
@@ -272,18 +272,18 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         //     resolve_ff_nodes(node, traverse_number, netlist);
         //     break;
         // }
-        case PMUX:            //fallthrough
-        case MUX_2:           //fallthrough
-        case SMUX_2:          //fallthrough
-        case MULTI_PORT_MUX:  //fallthrough
-        case MULTI_BIT_MUX_2: //fallthorugh
-        case MULTIPORT_nBIT_SMUX: {
-            /**
-             * resolving multiplexer nodes which
-             */
-            resolve_mux_nodes(node, traverse_number, netlist);
-            break;
-        }
+        // case PMUX:            //fallthrough
+        // case MUX_2:           //fallthrough
+        // case SMUX_2:          //fallthrough
+        // case MULTI_PORT_MUX:  //fallthrough
+        // case MULTI_BIT_MUX_2: //fallthorugh
+        // case MULTIPORT_nBIT_SMUX: {
+        //     /**
+        //      * resolving multiplexer nodes which
+        //      */
+        //     resolve_mux_nodes(node, traverse_number, netlist);
+        //     break;
+        // }
         case SPRAM: //fallthrough
         case DPRAM: //fallthrough
         case ROM:   //fallthrough
@@ -323,39 +323,6 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         default:
             error_message(BLIF_ELABORATION, node->loc, "node (%s: %s) should have been converted to softer version.", node->type, node->name);
             break;
-    }
-}
-
-/**
- * (function: resolve_shift_nodes)
- * 
- * @brief resolving the shift nodes by making
- * the input port sizes the same
- * 
- * @param node pointing to a shift node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- */
-static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist) {
-    oassert(node->traverse_visited == traverse_mark_number);
-
-    switch (node->type) {
-        case SL:  //fallthrough
-        case SR:  //fallthrough
-        case ASL: //fallthrough
-        case ASR: {
-            /**
-             * resolving the shift nodes by making
-             * the input port sizes the same
-             */
-            equalize_ports_size(node, traverse_mark_number, netlist);
-            break;
-        }
-        default: {
-            error_message(BLIF_ELABORATION, node->loc,
-                          "The node(%s) type (%s) is not among Odin's latch types [SL, SR, ASL and ASR]\n", node->name, node->type);
-            break;
-        }
     }
 }
 
@@ -434,59 +401,6 @@ static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_numb
         default: {
             error_message(BLIF_ELABORATION, node->loc,
                           "The node(%s) type is not among Odin's arithmetic types [ADD, MINUS and MULTIPLY]\n", node->name);
-            break;
-        }
-    }
-}
-
-/**
- *-------------------------------------------------------------------------------------------
- * (function: resolve_mux_nodes )
- * 
- * @brief resolving multiplexer nodes depending on their types, 
- * and making the selector as the first port
- * 
- * @param node pointing to the netlist node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- *-----------------------------------------------------------------------------------------*/
-static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist) {
-    oassert(node->traverse_visited == traverse_mark_number);
-
-    switch (node->type) {
-        case MULTIPORT_nBIT_SMUX: {
-            /**
-             * need to reorder the input pins, so that the 
-             * selector signal comes at the first place
-             */
-            make_selector_as_first_port(node);
-            break;
-        }
-        case PMUX: {
-            /**
-             * need to reorder the input pins, so that the 
-             * selector signal comes at the first place
-             */
-            make_selector_as_first_port(node);
-            /**
-             * resolving pmux node which is using one-hot selector
-             */
-            resolve_pmux_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case SMUX_2: //fallthrough
-        case MULTI_BIT_MUX_2: {
-            /* postpone to partial mapping phase */
-            break;
-        }
-        case MUX_2: //fallthrough
-        case MULTI_PORT_MUX: {
-            error_message(BLIF_ELABORATION, node->loc, "node (%s: %s) should have been converted to softer version.", node->type, node->name);
-            break;
-        }
-        default: {
-            error_message(BLIF_ELABORATION, node->loc,
-                          "The node(%s) type (%s) is not among Odin's latch types [PMUX, MULTIPORT_nBIT_SMUX, MULTI_BIT_MUX_2, MUX_2, MULTI_PORT_MUX]\n", node->name, node->type);
             break;
         }
     }

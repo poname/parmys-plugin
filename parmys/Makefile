@@ -42,9 +42,7 @@ SOURCES = parmys.cc \
 		  hierarchy_util.cc \
 		  ast_util.cc \
 		  implicit_memory.cc \
-		  Multiplexer.cc \
 		  scope_util.cc \
-		  Shift.cc \
 		  netlist_visualizer.cc \
 		  GenericReader.cc \
 		  GenericWriter.cc \
