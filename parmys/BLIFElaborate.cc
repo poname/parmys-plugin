@@ -59,7 +59,7 @@
 #include "FlipFlop.hpp"
 #include "Shift.hpp"
 // #include "Modulo.hpp"
-#include "CaseEqual.hpp"
+// #include "CaseEqual.hpp"
 #include "Multiplexer.hpp"
 #include "subtractions.h"
 
@@ -74,7 +74,7 @@ void blif_elaborate_node(nnode_t* node, short traverse_mark_number, netlist_t* n
 
 static void resolve_logical_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-static void resolve_case_equal_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+// static void resolve_case_equal_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_latch_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
@@ -230,14 +230,14 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
             resolve_shift_nodes(node, traverse_number, netlist);
             break;
         }
-        case CASE_EQUAL: //fallthorugh
-        case CASE_NOT_EQUAL: {
-            /**
-             * resolving case equal and not equal nodes by
-             */
-            resolve_case_equal_nodes(node, traverse_number, netlist);
-            break;
-        }
+        // case CASE_EQUAL: //fallthorugh
+        // case CASE_NOT_EQUAL: {
+        //     /**
+        //      * resolving case equal and not equal nodes by
+        //      */
+        //     resolve_case_equal_nodes(node, traverse_number, netlist);
+        //     break;
+        // }
         case ADD:      //fallthrough
         case MINUS:    //fallthorugh
         case MULTIPLY: //fallthrough
@@ -401,43 +401,6 @@ static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, n
         default: {
             error_message(BLIF_ELABORATION, node->loc,
                           "The node(%s) type (%s) is not among Odin's latch types [SL, SR, ASL and ASR]\n", node->name, node->type);
-            break;
-        }
-    }
-}
-
-/**
- *-------------------------------------------------------------------------------------------
- * (function: resolve_case_equal_nodes )
- * 
- * @brief resolving case equal nodes by instantiating XNOR, AND and invertor gates
- * 
- * @param node pointing to the netlist node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- *-----------------------------------------------------------------------------------------*/
-static void resolve_case_equal_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist) {
-    oassert(node->traverse_visited == traverse_mark_number);
-
-    switch (node->type) {
-        case CASE_EQUAL: {
-            /**
-             * resolving case equal node using xor and and gates
-             */
-            resolve_case_equal_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case CASE_NOT_EQUAL: {
-            /**
-             * resolving case not equal node by putting not gate 
-             * after case equal output node
-             */
-            resolve_case_not_equal_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        default: {
-            error_message(BLIF_ELABORATION, node->loc,
-                          "The node(%s) type (%s) is not among Odin's latch types \n", node->name, node->type);
             break;
         }
     }
