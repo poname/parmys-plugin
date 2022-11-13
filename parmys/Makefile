@@ -58,7 +58,6 @@ SOURCES = parmys.cc \
 		  Hashtable.cc \
 		  LogicalOps.cc \
 		  FlipFlop.cc \
-		  Latch.cc \
 		  Division.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \
 		  ../third_party/libvtrutil/src/vtr_token.cc \

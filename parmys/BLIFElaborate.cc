@@ -54,7 +54,7 @@
 #include "memories.h"
 #include "adders.h"
 #include "Division.hpp"
-#include "Latch.hpp"
+// #include "Latch.hpp"
 // #include "Power.hpp"
 #include "FlipFlop.hpp"
 #include "Shift.hpp"
@@ -77,7 +77,7 @@ static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, n
 // static void resolve_case_equal_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-static void resolve_latch_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+// static void resolve_latch_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_ff_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_memory_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 
@@ -250,15 +250,15 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
             resolve_arithmetic_nodes(node, traverse_number, netlist);
             break;
         }
-        case SETCLR: //fallthorugh
-        case DLATCH: //fallthorugh
-        case ADLATCH: {
-            /**
-             * resolving the latch nodes
-             */
-            resolve_latch_nodes(node, traverse_number, netlist);
-            break;
-        }
+        // case SETCLR: //fallthorugh
+        // case DLATCH: //fallthorugh
+        // case ADLATCH: {
+        //     /**
+        //      * resolving the latch nodes
+        //      */
+        //     resolve_latch_nodes(node, traverse_number, netlist);
+        //     break;
+        // }
         case FF_NODE: //fallthrough
         case SDFF:    //fallthrough
         case DFFE:    //fallthrough
@@ -534,50 +534,6 @@ static void resolve_mux_nodes(nnode_t* node, uintptr_t traverse_mark_number, net
         default: {
             error_message(BLIF_ELABORATION, node->loc,
                           "The node(%s) type (%s) is not among Odin's latch types [PMUX, MULTIPORT_nBIT_SMUX, MULTI_BIT_MUX_2, MUX_2, MULTI_PORT_MUX]\n", node->name, node->type);
-            break;
-        }
-    }
-}
-
-/**
- *-------------------------------------------------------------------------------------------
- * (function: resolve_latch_nodes )
- * 
- * @brief resolving the data latch or asynchronous data latch nodes
- * and dealing with setclr nodes
- * 
- * @param node pointing to the netlist node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- *-----------------------------------------------------------------------------------------*/
-static void resolve_latch_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist) {
-    oassert(node->traverse_visited == traverse_mark_number);
-
-    switch (node->type) {
-        case DLATCH: {
-            /**
-             * resolving the dlatch node
-             */
-            resolve_dlatch_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case ADLATCH: {
-            /**
-             * resolving the adlatch node
-             */
-            resolve_adlatch_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        case SETCLR: {
-            /**
-             * resolving a sr node with set and reset
-             */
-            resolve_sr_node(node, traverse_mark_number, netlist);
-            break;
-        }
-        default: {
-            error_message(BLIF_ELABORATION, node->loc,
-                          "The node(%s) type (%s) is not among Odin's latch types [dlatch, asynchronous-dlatch]\n", node->name, node->type);
             break;
         }
     }
