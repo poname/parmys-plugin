@@ -50,7 +50,7 @@
 #include "hard_blocks.h"
 #include "memories.h"
 #include "BlockMemories.hpp"
-#include "LogicalOps.hpp"
+// #include "LogicalOps.hpp"
 #include "memories.h"
 #include "adders.h"
 #include "Division.hpp"
@@ -72,7 +72,7 @@ void depth_first_traverse_blif_elaborate(nnode_t* node, uintptr_t traverse_mark_
 
 void blif_elaborate_node(nnode_t* node, short traverse_mark_number, netlist_t* netlist);
 
-static void resolve_logical_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+// static void resolve_logical_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_shift_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 // static void resolve_case_equal_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
 static void resolve_arithmetic_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
@@ -200,25 +200,25 @@ void depth_first_traverse_blif_elaborate(nnode_t* node, uintptr_t traverse_mark_
  *--------------------------------------------------------------------*/
 void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlist) {
     switch (node->type) {
-        case GTE:           //fallthrough
-        case LTE:           //fallthrough
-        case GT:            //fallthrough
-        case LT:            //fallthrough
-        case LOGICAL_OR:    //fallthrough
-        case LOGICAL_AND:   //fallthrough
-        case LOGICAL_NOT:   //fallthrough
-        case LOGICAL_NOR:   //fallthrough
-        case LOGICAL_NAND:  //fallthrough
-        case LOGICAL_XOR:   //fallthrough
-        case LOGICAL_XNOR:  //fallthrough
-        case LOGICAL_EQUAL: //fallthrough
-        case NOT_EQUAL: {
-            /** 
-             * to make sure they have only one output pin for partial mapping phase 
-             */
-            resolve_logical_nodes(node, traverse_number, netlist);
-            break;
-        }
+        // case GTE:           //fallthrough
+        // case LTE:           //fallthrough
+        // case GT:            //fallthrough
+        // case LT:            //fallthrough
+        // case LOGICAL_OR:    //fallthrough
+        // case LOGICAL_AND:   //fallthrough
+        // case LOGICAL_NOT:   //fallthrough
+        // case LOGICAL_NOR:   //fallthrough
+        // case LOGICAL_NAND:  //fallthrough
+        // case LOGICAL_XOR:   //fallthrough
+        // case LOGICAL_XNOR:  //fallthrough
+        // case LOGICAL_EQUAL: //fallthrough
+        // case NOT_EQUAL: {
+        //     /** 
+        //      * to make sure they have only one output pin for partial mapping phase 
+        //      */
+        //     resolve_logical_nodes(node, traverse_number, netlist);
+        //     break;
+        // }
         case SL:  //fallthrough
         case SR:  //fallthrough
         case ASL: //fallthrough
@@ -323,53 +323,6 @@ void blif_elaborate_node(nnode_t* node, short traverse_number, netlist_t* netlis
         default:
             error_message(BLIF_ELABORATION, node->loc, "node (%s: %s) should have been converted to softer version.", node->type, node->name);
             break;
-    }
-}
-
-/**
- * (function: resolve_logical_nodes)
- * 
- * @brief resolving the logical nodes by connecting the ouput pins[1..n] 
- * to GND or splitting them into single bit nodes
- * 
- * @param node pointing to a logical node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- */
-static void resolve_logical_nodes(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist) {
-    oassert(node->traverse_visited == traverse_mark_number);
-
-    switch (node->type) {
-        case GTE:           //fallthrough
-        case LTE:           //fallthrough
-        case GT:            //fallthrough
-        case LT:            //fallthrough
-        case LOGICAL_EQUAL: //fallthrough
-        case NOT_EQUAL: {
-            /**
-             * drive extra output pins by GND and only keep the first output pin connected
-             */
-            prune_logical_node_outputs(node, traverse_mark_number, netlist);
-            break;
-        }
-        case LOGICAL_OR:   //fallthrough
-        case LOGICAL_AND:  //fallthrough
-        case LOGICAL_NOT:  //fallthrough
-        case LOGICAL_NOR:  //fallthrough
-        case LOGICAL_NAND: //fallthrough
-        case LOGICAL_XOR:  //fallthrough
-        case LOGICAL_XNOR: {
-            /**
-             * split logical node into single bit logical nodes
-             */
-            split_in_single_bit_logic(node, traverse_mark_number, netlist);
-            break;
-        }
-        default: {
-            error_message(BLIF_ELABORATION, node->loc,
-                          "The node(%s) type is not among Odin's logical types [GTE, LTE, GT, LT, OR, AND, NOT, NOR, NAND, XOR, XNOR, EQUAL and NOT_EQUAL]\n", node->name);
-            break;
-        }
     }
 }
 
