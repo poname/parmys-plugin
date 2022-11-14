@@ -502,9 +502,6 @@ struct ParMYSPass : public Pass {
 
             // new_node->type = yosys_subckt_strmap[str(cell->type).c_str()];
             new_node->type = from_yosys_type(cell->type);
-            if (new_node->type != yosys_subckt_strmap[str(cell->type).c_str()]) {
-                log("::::>>>%s\n", log_id(cell->type));
-            }
 
             // check primitive node type is alreday mapped before or not (blackboxed)
             if (new_node->type == SPRAM || new_node->type == DPRAM || new_node->type == ADD || new_node->type == MULTIPLY) {
@@ -533,7 +530,8 @@ struct ParMYSPass : public Pass {
                     std::smatch m;
                     std::string modname(str(cell->type));
                     if (regex_match(modname, m, regex)) {
-                        new_node->type = yosys_subckt_strmap[m.str(1).c_str()];
+                        // new_node->type = yosys_subckt_strmap[m.str(1).c_str()];
+                        new_node->type = from_yosys_type(ID(m.str(1)));
                     }
                 } else if (cell->type.begins_with("$paramod\\")) // e.g. $paramod\dual_port_ram\ADDR_WIDTH?4'0100\DATA_WIDTH?4'0101
                 {
@@ -541,7 +539,8 @@ struct ParMYSPass : public Pass {
                     std::smatch m;
                     std::string modname(str(cell->type));
                     if (regex_match(modname, m, regex)) {
-                        new_node->type = yosys_subckt_strmap[m.str(1).c_str()];
+                        // new_node->type = yosys_subckt_strmap[m.str(1).c_str()];
+                        new_node->type = from_yosys_type(ID(m.str(1)));
                     }
                 } else if (design->module(cell->type)->get_blackbox_attribute()) {
                     // log("SKIP for black box: %s :: %s\n", log_id(cell->name), log_id(cell->type));
