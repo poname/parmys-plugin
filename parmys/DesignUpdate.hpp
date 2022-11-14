@@ -3,6 +3,8 @@
 
 #include "odin_types.h"
 
+#define DEFAULT_CLOCK_NAME "GLOBAL_SIM_BASE_CLK"
+
 void define_logical_function_yosys(nnode_t *node, Yosys::Module *module);
 void update_design(Yosys::Design *design, const netlist_t *netlist);
 void define_MUX_function_yosys(nnode_t *node, Yosys::Module *module);

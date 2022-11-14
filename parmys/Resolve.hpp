@@ -24,6 +24,8 @@
 #ifndef __RESOLVE_H
 #define __RESOLVE_H
 
+#define DEFAULT_CLOCK_NAME "GLOBAL_SIM_BASE_CLK"
+
 void resolve_top(netlist_t* netlist);
 
 #endif

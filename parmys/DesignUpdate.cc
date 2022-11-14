@@ -32,7 +32,7 @@
 #include "netlist_check.h"
 #include "netlist_cleanup.h"
 #include "netlist_utils.h"
-#include "simulate_blif.h"
+// #include "simulate_blif.h"
 
 #include "vtr_memory.h"
 #include "vtr_util.h"

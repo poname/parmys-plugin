@@ -33,7 +33,7 @@
 #include "netlist_utils.h"
 #include "node_creation_library.h"
 #include "odin_util.h"
-#include "simulate_blif.h"
+// #include "simulate_blif.h"
 
 #include "Resolve.hpp"
 #include "multipliers.h"
