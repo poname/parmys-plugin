@@ -266,7 +266,7 @@ struct ParMYSPass : public Pass {
      * @brief to map yosys input port to odin input port
      * -------------------------------------------------------------------------------------------
      */
-    void map_input_port(const RTLIL::IdString &mapping, SigSpec in_port, nnode_t *node, pool<SigBit> &cstr_bits_seen)
+    static void map_input_port(const RTLIL::IdString &mapping, SigSpec in_port, nnode_t *node, pool<SigBit> &cstr_bits_seen)
     {
 
         int base_pin_idx = node->num_input_pins;
@@ -365,7 +365,7 @@ struct ParMYSPass : public Pass {
      * @brief to convert yosys design to odin netlist
      * -------------------------------------------------------------------------------------------
      */
-    netlist_t *to_netlist(RTLIL::Module *top_module, RTLIL::Design *design)
+    static netlist_t *to_netlist(RTLIL::Module *top_module, RTLIL::Design *design)
     {
 
         std::vector<RTLIL::Module *> mod_list;
@@ -759,7 +759,7 @@ struct ParMYSPass : public Pass {
      * @brief to elaborate initial netlist to become ready for partial mapper
      * -------------------------------------------------------------------------------------------
      */
-    void elaborate(netlist_t *odin_netlist)
+    static void elaborate(netlist_t *odin_netlist)
     {
         double elaboration_time = wall_time();
 
@@ -784,7 +784,7 @@ struct ParMYSPass : public Pass {
      * @brief to optimize input odin netlist
      * -------------------------------------------------------------------------------------------
      */
-    void optimization(netlist_t *odin_netlist)
+    static void optimization(netlist_t *odin_netlist)
     {
         double optimization_time = wall_time();
 
@@ -846,7 +846,7 @@ struct ParMYSPass : public Pass {
      * @brief to perform partial mapping on the netlist
      * -------------------------------------------------------------------------------------------
      */
-    void techmap(netlist_t *odin_netlist)
+    static void techmap(netlist_t *odin_netlist)
     {
         double techmap_time = wall_time();
 
@@ -958,15 +958,15 @@ struct ParMYSPass : public Pass {
         log("\n");
         log("    -top top_module\n");
         log("        set the specified module as design top module\n");
-        log("\n");
-        log("    -y YOSYS_OUTPUT_FILE_PATH\n");
-        log("        Output blif file path after yosys elaboration\n");
-        log("\n");
-        log("    -o ODIN_OUTPUT_FILE_PATH\n");
-        log("        Output blif file path after odin partial mapper\n");
-        log("\n");
-        log("    -fflegalize\n");
-        log("        Make all flip-flops rising edge to be compatible with VPR (may add inverters)\n");
+//        log("\n");
+//        log("    -y YOSYS_OUTPUT_FILE_PATH\n");
+//        log("        Output blif file path after yosys elaboration\n");
+//        log("\n");
+//        log("    -o ODIN_OUTPUT_FILE_PATH\n");
+//        log("        Output blif file path after odin partial mapper\n");
+//        log("\n");
+//        log("    -fflegalize\n");
+//        log("        Make all flip-flops rising edge to be compatible with VPR (may add inverters)\n");
         log("\n");
         log("    -exact_mults int_value\n");
         log("        To enable mixing hard block and soft logic implementation of adders\n");
@@ -995,8 +995,8 @@ struct ParMYSPass : public Pass {
         std::string arch_file_path;
         std::string config_file_path;
         std::string top_module_name;
-        std::string yosys_coarsen_blif_output(proc_share_dirname() + "yosys_coarsen.blif");
-        std::string odin_mapped_blif_output(proc_share_dirname() + "odin_mapped.blif");
+//        std::string yosys_coarsen_blif_output(proc_share_dirname() + "yosys_coarsen.blif");
+//        std::string odin_mapped_blif_output(proc_share_dirname() + "odin_mapped.blif");
         std::string verilog_input_path;
         std::string DEFAULT_OUTPUT(".");
 
@@ -1021,15 +1021,15 @@ struct ParMYSPass : public Pass {
                 top_module_name = args[++argidx];
                 continue;
             }
-            if (args[argidx] == "-y" && argidx + 1 < args.size()) {
-                yosys_coarsen_blif_output = args[++argidx];
-                continue;
-            }
-            if (args[argidx] == "-o" && argidx + 1 < args.size()) {
-                // global_args.output_file @TODO
-                odin_mapped_blif_output = args[++argidx];
-                continue;
-            }
+//            if (args[argidx] == "-y" && argidx + 1 < args.size()) {
+//                yosys_coarsen_blif_output = args[++argidx];
+//                continue;
+//            }
+//            if (args[argidx] == "-o" && argidx + 1 < args.size()) {
+//                // global_args.output_file @TODO
+//                odin_mapped_blif_output = args[++argidx];
+//                continue;
+//            }
             if (args[argidx] == "-vtr_prim") {
                 flag_load_vtr_primitives = true;
                 continue;
@@ -1047,10 +1047,10 @@ struct ParMYSPass : public Pass {
                 global_args.blif_file.set(args[++argidx], argparse::Provenance::SPECIFIED);
                 continue;
             }
-            if (args[argidx] == "-fflegalize") {
-                global_args.fflegalize.set(true, argparse::Provenance::SPECIFIED);
-                continue;
-            }
+//            if (args[argidx] == "-fflegalize") {
+//                global_args.fflegalize.set(true, argparse::Provenance::SPECIFIED);
+//                continue;
+//            }
             if (args[argidx] == "-exact_mults" && argidx + 1 < args.size()) {
                 global_args.exact_mults.set(atoi(args[++argidx].c_str()), argparse::Provenance::SPECIFIED);
                 continue;
@@ -1086,8 +1086,8 @@ struct ParMYSPass : public Pass {
             mixer->_opts[MULTIPLY] = new MultsOpt(global_args.exact_mults);
         }
 
-        if (global_args.fflegalize.provenance() == argparse::Provenance::SPECIFIED) {
-        }
+//        if (global_args.fflegalize.provenance() == argparse::Provenance::SPECIFIED) {
+//        }
 
         configuration.coarsen = true;
 

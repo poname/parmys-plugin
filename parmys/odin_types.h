@@ -109,9 +109,9 @@ struct global_args_t {
     argparse::ArgValue<bool> all_warnings;
     argparse::ArgValue<bool> show_help;
 
-    argparse::ArgValue<bool> fflegalize;     // makes flip-flops rising edge sensitive
+//    argparse::ArgValue<bool> fflegalize;     // makes flip-flops rising edge sensitive
     argparse::ArgValue<bool> coarsen;        // tells Odin-II that the input blif is coarse-grain
-    argparse::ArgValue<bool> show_yosys_log; // Show Yosys output logs into the standard output stream
+//    argparse::ArgValue<bool> show_yosys_log; // Show Yosys output logs into the standard output stream
 
     argparse::ArgValue<std::string> adder_def; //DEPRECATED
 

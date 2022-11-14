@@ -36,7 +36,7 @@ using namespace pugiutil;
 config_t configuration;
 
 void read_inputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
-void read_outputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
+void read_outputs(pugi::xml_node a_node, const pugiutil::loc_data& loc_data);
 void read_debug_switches(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
 void read_optimizations(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
 void set_default_optimization_settings(config_t* config);
@@ -69,7 +69,7 @@ void read_config_file(const char* file_name) {
 
         /* Process the output */
         next = get_single_child(config, "output", loc_data);
-        read_outputs(next, &configuration, loc_data);
+        read_outputs(next, loc_data);
 
         /* Process the optimizations */
         set_default_optimization_settings(&configuration);
@@ -114,7 +114,7 @@ void read_inputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_da
 /*--------------------------------------------------------------------------
  * (function: read_outputs)
  *------------------------------------------------------------------------*/
-void read_outputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data) {
+void read_outputs(pugi::xml_node a_node, const pugiutil::loc_data& loc_data) {
     pugi::xml_node child;
 
     child = get_single_child(a_node, "output_type", loc_data, OPTIONAL);
