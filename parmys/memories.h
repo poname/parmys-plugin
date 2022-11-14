@@ -90,7 +90,7 @@ void free_memory_lists();
 void instantiate_soft_single_port_ram(nnode_t* node, short mark, netlist_t* netlist);
 void instantiate_soft_dual_port_ram(nnode_t* node, short mark, netlist_t* netlist);
 
-signal_list_t* create_decoder(nnode_t* node, short mark, signal_list_t* input_list);
+signal_list_t* create_decoder(nnode_t* node, short mark, signal_list_t* input_list, netlist_t* netlist);
 
 extern void add_input_port_to_memory(nnode_t* node, signal_list_t* signalsvar, const char* port_name);
 extern void add_output_port_to_memory(nnode_t* node, signal_list_t* signalsvar, const char* port_name);

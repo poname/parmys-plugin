@@ -12,6 +12,7 @@ enum ODIN_ERROR_CODE {
     ERROR_TECHMAP
 };
 
+void init_global_params();
 void set_default_config();
 
 #endif

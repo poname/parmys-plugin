@@ -23,8 +23,6 @@ extern loc_t my_location;
 extern STRING_CACHE* output_nets_sc;
 extern STRING_CACHE* input_nets_sc;
 
-extern netlist_t* syn_netlist;
-
 extern nnode_t* gnd_node;
 extern nnode_t* vcc_node;
 extern nnode_t* pad_node;

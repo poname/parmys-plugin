@@ -1448,7 +1448,7 @@ void instantiate_soft_single_port_ram(nnode_t* node, short mark, netlist_t* netl
     sp_ram_signals* signals = get_sp_ram_signals(node);
 
     // Construct an address decoder.
-    signal_list_t* decoder = create_decoder(node, mark, signals->addr);
+    signal_list_t* decoder = create_decoder(node, mark, signals->addr, netlist);
 
     // The total number of memory addresses. (2^address_bits)
     long num_addr = decoder->count;
@@ -1460,9 +1460,9 @@ void instantiate_soft_single_port_ram(nnode_t* node, short mark, netlist_t* netl
         /* Check that the input pin is driven */
         oassert(
             address_pin->net->num_driver_pins
-            || address_pin->net == syn_netlist->zero_net
-            || address_pin->net == syn_netlist->one_net
-            || address_pin->net == syn_netlist->pad_net);
+            || address_pin->net == netlist->zero_net
+            || address_pin->net == netlist->one_net
+            || address_pin->net == netlist->pad_net);
 
         // An AND gate to enable and disable writing.
         nnode_t* and_g = make_1port_logic_gate(LOGICAL_AND, 2, node, mark);
@@ -1488,9 +1488,9 @@ void instantiate_soft_single_port_ram(nnode_t* node, short mark, netlist_t* netl
             /* Check that the input pin is driven */
             oassert(
                 address_pin->net->num_driver_pins
-                || address_pin->net == syn_netlist->zero_net
-                || address_pin->net == syn_netlist->one_net
-                || address_pin->net == syn_netlist->pad_net);
+                || address_pin->net == netlist->zero_net
+                || address_pin->net == netlist->one_net
+                || address_pin->net == netlist->pad_net);
 
             // A multiplexer switches between accepting incoming data and keeping existing data.
             nnode_t* mux = make_2port_gate(MUX_2, 2, 2, 1, node, mark);
@@ -1552,8 +1552,8 @@ void instantiate_soft_dual_port_ram(nnode_t* node, short mark, netlist_t* netlis
     dp_ram_signals* signals = get_dp_ram_signals(node);
 
     // Construct the address decoders.
-    signal_list_t* decoder1 = create_decoder(node, mark, signals->addr1);
-    signal_list_t* decoder2 = create_decoder(node, mark, signals->addr2);
+    signal_list_t* decoder1 = create_decoder(node, mark, signals->addr1, netlist);
+    signal_list_t* decoder2 = create_decoder(node, mark, signals->addr2, netlist);
 
     oassert(decoder1->count == decoder2->count);
 
@@ -1573,14 +1573,14 @@ void instantiate_soft_dual_port_ram(nnode_t* node, short mark, netlist_t* netlis
 
         oassert(
             addr1_pin->net->num_driver_pins
-            || addr1_pin->net == syn_netlist->zero_net
-            || addr1_pin->net == syn_netlist->one_net
-            || addr1_pin->net == syn_netlist->pad_net);
+            || addr1_pin->net == netlist->zero_net
+            || addr1_pin->net == netlist->one_net
+            || addr1_pin->net == netlist->pad_net);
         oassert(
             addr2_pin->net->num_driver_pins
-            || addr2_pin->net == syn_netlist->zero_net
-            || addr2_pin->net == syn_netlist->one_net
-            || addr2_pin->net == syn_netlist->pad_net);
+            || addr2_pin->net == netlist->zero_net
+            || addr2_pin->net == netlist->one_net
+            || addr2_pin->net == netlist->pad_net);
 
         // Write enable and gate for address 1.
         nnode_t* and1 = make_1port_logic_gate(LOGICAL_AND, 2, node, mark);
@@ -1626,14 +1626,14 @@ void instantiate_soft_dual_port_ram(nnode_t* node, short mark, netlist_t* netlis
 
             oassert(
                 addr1_pin->net->num_driver_pins
-                || addr1_pin->net == syn_netlist->zero_net
-                || addr1_pin->net == syn_netlist->one_net
-                || addr1_pin->net == syn_netlist->pad_net);
+                || addr1_pin->net == netlist->zero_net
+                || addr1_pin->net == netlist->one_net
+                || addr1_pin->net == netlist->pad_net);
             oassert(
                 addr2_pin->net->num_driver_pins
-                || addr2_pin->net == syn_netlist->zero_net
-                || addr2_pin->net == syn_netlist->one_net
-                || addr2_pin->net == syn_netlist->pad_net);
+                || addr2_pin->net == netlist->zero_net
+                || addr2_pin->net == netlist->one_net
+                || addr2_pin->net == netlist->pad_net);
 
             // The data mux selects between the two data lines for this address.
             nnode_t* data_mux = make_2port_gate(MUX_2, 2, 2, 1, node, mark);
@@ -1715,7 +1715,7 @@ void instantiate_soft_dual_port_ram(nnode_t* node, short mark, netlist_t* netlis
 /*
  * Creates an n to 2^n decoder from the input signal list.
  */
-signal_list_t* create_decoder(nnode_t* node, short mark, signal_list_t* input_list) {
+signal_list_t* create_decoder(nnode_t* node, short mark, signal_list_t* input_list, netlist_t* netlist) {
     long num_inputs = input_list->count;
     if (num_inputs > SOFT_RAM_ADDR_LIMIT)
         error_message(NETLIST, node->loc, "Memory %s of depth 2^%ld exceeds ODIN bound of 2^%d.\nMust use an FPGA architecture that contains embedded hard block memories", node->name, num_inputs, SOFT_RAM_ADDR_LIMIT);
@@ -1727,11 +1727,11 @@ signal_list_t* create_decoder(nnode_t* node, short mark, signal_list_t* input_li
     signal_list_t* not_gates = init_signal_list();
     for (long i = 0; i < num_inputs; i++) {
         if (!input_list->pins[i]->net->num_driver_pins
-            && input_list->pins[i]->net != syn_netlist->zero_net
-            && input_list->pins[i]->net != syn_netlist->one_net
-            && input_list->pins[i]->net != syn_netlist->pad_net) {
+            && input_list->pins[i]->net != netlist->zero_net
+            && input_list->pins[i]->net != netlist->one_net
+            && input_list->pins[i]->net != netlist->pad_net) {
             warning_message(NETLIST, node->loc, "Signal %s is not driven. padding with ground\n", input_list->pins[i]->name);
-            add_fanout_pin_to_net(syn_netlist->zero_net, input_list->pins[i]);
+            add_fanout_pin_to_net(netlist->zero_net, input_list->pins[i]);
         }
 
         nnode_t* not_g = make_not_gate(node, mark);

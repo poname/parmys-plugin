@@ -36,8 +36,8 @@
 #include "yosys_utils.hpp"
 
 static void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design);
-static void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, Yosys::Design *design);
-static void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, Yosys::Design *design);
+static void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design);
+static void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design);
 
 Yosys::Wire *wire_net_driver(Yosys::Module *module, nnode_t *node, nnet_t *net, long driver_idx)
 {
@@ -238,14 +238,14 @@ void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, 
     }
 
     /* now traverse the ground, vcc, and unconn pins */
-    depth_traverse_update_design(netlist->gnd_node, marker_value, module, design);
-    depth_traverse_update_design(netlist->vcc_node, marker_value, module, design);
-    depth_traverse_update_design(netlist->pad_node, marker_value, module, design);
+    depth_traverse_update_design(netlist->gnd_node, marker_value, module, netlist, design);
+    depth_traverse_update_design(netlist->vcc_node, marker_value, module, netlist, design);
+    depth_traverse_update_design(netlist->pad_node, marker_value, module, netlist, design);
 
     /* start with the primary input list */
     for (i = 0; i < netlist->num_top_input_nodes; i++) {
         if (netlist->top_input_nodes[i] != NULL) {
-            depth_traverse_update_design(netlist->top_input_nodes[i], marker_value, module, design);
+            depth_traverse_update_design(netlist->top_input_nodes[i], marker_value, module, netlist, design);
         }
     }
 }
@@ -261,7 +261,7 @@ void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, 
  * @param fp the output blif file
  * ---------------------------------------------------------------------------------------------
  */
-void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, Yosys::Design *design)
+void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design)
 {
     int i, j;
     nnode_t *next_node;
@@ -273,7 +273,7 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
         /* ELSE - this is a new node so depth visit it */
 
         /* POST traverse  map the node since you might delete */
-        cell_node(node, traverse_mark_number, module, design);
+        cell_node(node, traverse_mark_number, module, netlist, design);
 
         /* mark that we have visitied this node now */
         node->traverse_visited = traverse_mark_number;
@@ -292,7 +292,7 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
                     continue;
 
                 /* recursive call point */
-                depth_traverse_update_design(next_node, traverse_mark_number, module, design);
+                depth_traverse_update_design(next_node, traverse_mark_number, module, netlist, design);
             }
         }
     }
@@ -308,7 +308,7 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
  * @param fp the output blif file
  * ---------------------------------------------------------------------------------------------
  */
-void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, Yosys::Design *design)
+void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design)
 {
     switch (node->type) {
     case GT:
@@ -367,7 +367,7 @@ void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, 
 
     case MEMORY:
     case HARD_IP:
-        cell_hard_block(node, module, design);
+        cell_hard_block(node, module, netlist, design);
         break;
     case CLOCK_NODE:
         Yosys::log_error("CLOCK\n");
@@ -379,7 +379,7 @@ void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, 
     case VCC_NODE:
         break;
     case SKIP:
-        cell_hard_block(node, module, design);
+        cell_hard_block(node, module, netlist, design);
         break;
     case BITWISE_AND:
     case BITWISE_NAND:
