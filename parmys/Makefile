@@ -85,3 +85,6 @@ CXXSTD := c++14
 CXXFLAGS += -std=$(CXXSTD) -Os
 
 LDLIBS += -lpthread
+
+install:
+	install -D ../misc/primitives.v $(DATA_DIR)/parmys/vtr_primitives.v

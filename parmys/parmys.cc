@@ -1117,7 +1117,7 @@ struct ParMYSPass : public Pass {
         log("Using Lut input width of: %d\n", physical_lut_size);
 
         if (flag_load_vtr_primitives) {
-            Pass::call(design, "read_verilog -nomem2reg ../misc/primitives.v");
+            Pass::call(design, "read_verilog -nomem2reg +/parmys/vtr_primitives.v");
             Pass::call(design, "setattr -mod -set keep_hierarchy 1 single_port_ram");
             Pass::call(design, "setattr -mod -set keep_hierarchy 1 dual_port_ram");
         }
@@ -1340,6 +1340,8 @@ struct ParMYSPass : public Pass {
         // report(transformed);
         //  compute_statistics(transformed, true);
 
+        Pass::call(design, "hierarchy -check -auto-top -purge_lib");
+
         log("--------------------------------------------------------------------\n");
 
         // Pass::call(design, "design -stash $odin");
@@ -1355,7 +1357,7 @@ struct ParMYSPass : public Pass {
         free_type_descriptors(logical_block_types);
         free_type_descriptors(physical_tile_types);
 
-        // vtr::free(transformed);
+        vtr::free(transformed);
 
         if (one_string) {
             vtr::free(one_string);
