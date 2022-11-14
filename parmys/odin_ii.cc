@@ -21,48 +21,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <sstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <vector>
-
-#include "odin_ii.h"
-#include "vtr_error.h"
-#include "vtr_time.h"
 
 #include "argparse.hpp"
+#include "odin_ii.h"
 
-#include "arch_util.h"
-
-#include "Resolve.hpp"
-#include "arch_types.h"
-// #include "ast_util.h"
-#include "multipliers.h"
-#include "netlist_check.h"
-#include "netlist_cleanup.h"
-// #include "netlist_create_from_ast.h"
-#include "netlist_utils.h"
 #include "odin_globals.h"
 #include "odin_types.h"
-// #include "parse_making_ast.h"
-#include "partial_map.h"
-#include "read_xml_arch_file.h"
-#include "read_xml_config_file.h"
-
-#include "BlockMemories.hpp"
-#include "hard_blocks.h"
-#include "memories.h"
-#include "simulate_blif.h"
-
-#include "adders.h"
-#include "netlist_statistic.h"
-#include "netlist_visualizer.h"
-#include "subtractions.h"
 
 #include "HardSoftLogicMixer.hpp"
-#include "vtr_memory.h"
 #include "vtr_path.h"
-#include "vtr_util.h"
 
 #define DEFAULT_OUTPUT "."
 
@@ -70,42 +37,8 @@ loc_t my_location;
 
 t_arch Arch;
 global_args_t global_args;
-std::vector<t_physical_tile_type> physical_tile_types;
-std::vector<t_logical_block_type> logical_block_types;
 short physical_lut_size = -1;
-int block_tag = -1;
-ids default_net_type = WIRE;
 HardSoftLogicMixer *mixer;
-
-struct ParseInitRegState {
-    int from_str(std::string str)
-    {
-        if (str == "0")
-            return 0;
-        else if (str == "1")
-            return 1;
-        else if (str == "X")
-            return -1;
-        std::stringstream msg;
-        msg << "Invalid conversion from '" << str << "' (expected one of: " << argparse::join(default_choices(), ", ") << ")";
-        throw argparse::ArgParseConversionError(msg.str());
-    }
-
-    std::string to_str(int val)
-    {
-        if (val == 0)
-            return "0";
-        else if (val == 1)
-            return "1";
-        else if (val == -1)
-            return "X";
-        std::stringstream msg;
-        msg << "Invalid conversion from " << val;
-        throw argparse::ArgParseConversionError(msg.str());
-    }
-
-    std::vector<std::string> default_choices() { return {"0", "1", "X"}; }
-};
 
 /*---------------------------------------------------------------------------
  * (function: set_default_options)

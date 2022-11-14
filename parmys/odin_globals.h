@@ -18,9 +18,6 @@ constexpr long long UNUSED_NODE_TYPE = 0;
 
 extern t_logical_block_type* type_descriptors;
 
-/* VERILOG SYNTHESIS GLOBALS */
-extern ids default_net_type;
-
 extern global_args_t global_args;
 extern config_t configuration;
 extern loc_t my_location;

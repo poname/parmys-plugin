@@ -68,7 +68,7 @@ struct Bbox {
 
 struct ParMYSPass : public Pass {
 
-    void hook_up_nets(netlist_t *odin_netlist, Hashtable *output_nets_hash)
+    static void hook_up_nets(netlist_t *odin_netlist, Hashtable *output_nets_hash)
     {
         nnode_t **node_sets[] = {odin_netlist->internal_nodes, odin_netlist->ff_nodes, odin_netlist->top_output_nodes};
         int counts[] = {odin_netlist->num_internal_nodes, odin_netlist->num_ff_nodes, odin_netlist->num_top_output_nodes};
@@ -85,7 +85,7 @@ struct ParMYSPass : public Pass {
         }
     }
 
-    void hook_up_node(nnode_t *node, Hashtable *output_nets_hash)
+    static void hook_up_node(nnode_t *node, Hashtable *output_nets_hash)
     {
         int j;
         for (j = 0; j < node->num_input_pins; j++) {
@@ -107,7 +107,7 @@ struct ParMYSPass : public Pass {
      * @brief to create top output nodes and nets for netlist from input pins
      * --------------------------------------------------------------------------------------------
      */
-    void build_top_output_node(const char *name_str, netlist_t *odin_netlist)
+    static void build_top_output_node(const char *name_str, netlist_t *odin_netlist)
     {
         /* new node */
         nnode_t *new_node = allocate_nnode(my_location);
@@ -134,7 +134,7 @@ struct ParMYSPass : public Pass {
      * @brief to create top input nodes for netlist from input pins
      * --------------------------------------------------------------------------------------------
      */
-    void build_top_input_node(const char *name_str, netlist_t *odin_netlist, Hashtable *output_nets_hash)
+    static void build_top_input_node(const char *name_str, netlist_t *odin_netlist, Hashtable *output_nets_hash)
     {
         /* create a new top input node and net*/
 
@@ -178,7 +178,7 @@ struct ParMYSPass : public Pass {
      * @brief to create top VCC, GND, and Z inputs and nets
      * -------------------------------------------------------------------------------------------
      */
-    void create_top_driver_nets(netlist_t *odin_netlist, Hashtable *output_nets_hash)
+    static void create_top_driver_nets(netlist_t *odin_netlist, Hashtable *output_nets_hash)
     {
         npin_t *new_pin;
         /* create the constant nets */
@@ -237,7 +237,7 @@ struct ParMYSPass : public Pass {
      * @brief to create ODIN compatible names based on signal
      * -------------------------------------------------------------------------------------------
      */
-    char *sig_full_ref_name_sig(RTLIL::SigBit sig, char *identifier, pool<SigBit> &cstr_bits_seen)
+    static char *sig_full_ref_name_sig(RTLIL::SigBit sig, pool<SigBit> &cstr_bits_seen)
     {
 
         cstr_bits_seen.insert(sig);
@@ -267,7 +267,7 @@ struct ParMYSPass : public Pass {
      * @brief to map yosys input port to odin input port
      * -------------------------------------------------------------------------------------------
      */
-    void map_input_port(RTLIL::IdString mapping, SigSpec in_port, nnode_t *node, char *identifier, pool<SigBit> &cstr_bits_seen)
+    void map_input_port(const RTLIL::IdString &mapping, SigSpec in_port, nnode_t *node, char *identifier, pool<SigBit> &cstr_bits_seen)
     {
 
         int base_pin_idx = node->num_input_pins;
@@ -277,7 +277,7 @@ struct ParMYSPass : public Pass {
 
         for (int i = 0; i < in_port.size(); i++) {
 
-            char *in_pin_name = sig_full_ref_name_sig(in_port[i], identifier, cstr_bits_seen);
+            char *in_pin_name = sig_full_ref_name_sig(in_port[i], cstr_bits_seen);
 
             npin_t *in_pin = allocate_npin();
             in_pin->name = vtr::strdup(in_pin_name);
@@ -295,8 +295,8 @@ struct ParMYSPass : public Pass {
      * @brief to map yosys output port to odin output port
      * -------------------------------------------------------------------------------------------
      */
-    void map_output_port(RTLIL::IdString mapping, SigSpec out_port, nnode_t *node, char *identifier, Hashtable *output_nets_hash,
-                         pool<SigBit> &cstr_bits_seen)
+    static void map_output_port(const RTLIL::IdString &mapping, SigSpec out_port, nnode_t *node, Hashtable *output_nets_hash,
+                                pool<SigBit> &cstr_bits_seen)
     {
 
         int base_pin_idx = node->num_output_pins;
@@ -312,7 +312,7 @@ struct ParMYSPass : public Pass {
             out_pin->mapping = vtr::strdup(RTLIL::unescape_id(mapping).c_str());
             add_output_pin_to_node(node, out_pin, base_pin_idx + i); // if more than one output then i + something
 
-            char *output_pin_name = sig_full_ref_name_sig(out_port[i], identifier, cstr_bits_seen);
+            char *output_pin_name = sig_full_ref_name_sig(out_port[i], cstr_bits_seen);
             nnet_t *out_net = (nnet_t *)output_nets_hash->get(output_pin_name);
             if (out_net == nullptr) {
                 out_net = allocate_nnet();
@@ -332,7 +332,7 @@ struct ParMYSPass : public Pass {
      * @brief to check if an inferred odin node type needs additional params to be read from yosys cell
      * -------------------------------------------------------------------------------------------
      */
-    bool is_param_required(operation_list op)
+    static bool is_param_required(operation_list op)
     {
         switch (op) {
         case (SL):
@@ -417,7 +417,7 @@ struct ParMYSPass : public Pass {
         for (auto &it : inputs) {
             RTLIL::Wire *wire = it.second;
             for (int i = 0; i < wire->width; i++) {
-                char *name_string = sig_full_ref_name_sig(RTLIL::SigBit(wire, i), odin_netlist->identifier, cstr_bits_seen);
+                char *name_string = sig_full_ref_name_sig(RTLIL::SigBit(wire, i), cstr_bits_seen);
                 build_top_input_node(name_string, odin_netlist, output_nets_hash);
                 vtr::free(name_string);
             }
@@ -426,7 +426,7 @@ struct ParMYSPass : public Pass {
         for (auto &it : outputs) {
             RTLIL::Wire *wire = it.second;
             for (int i = 0; i < wire->width; i++) {
-                char *name_string = sig_full_ref_name_sig(RTLIL::SigBit(wire, i), odin_netlist->identifier, cstr_bits_seen);
+                char *name_string = sig_full_ref_name_sig(RTLIL::SigBit(wire, i), cstr_bits_seen);
                 build_top_output_node(name_string, odin_netlist);
                 vtr::free(name_string);
             }
@@ -437,7 +437,7 @@ struct ParMYSPass : public Pass {
             // log("cell type: %s %s\n", cell->type.c_str(), str(cell->type).c_str());
 
             nnode_t *new_node = allocate_nnode(my_location);
-            new_node->cell = cell;
+            //            new_node->cell = cell;
 
             for (auto &param : cell->parameters) {
                 new_node->cell_parameters[Yosys::RTLIL::IdString(param.first)] = Yosys::Const(param.second);
@@ -520,7 +520,7 @@ struct ParMYSPass : public Pass {
                 }
 
                 if (cell->output(conn.first) && conn.second.size() > 0) {
-                    map_output_port(conn.first, conn.second, new_node, odin_netlist->identifier, output_nets_hash, cstr_bits_seen);
+                    map_output_port(conn.first, conn.second, new_node, output_nets_hash, cstr_bits_seen);
                 }
             }
 
@@ -667,7 +667,7 @@ struct ParMYSPass : public Pass {
                     continue;
 
                 nnode_t *buf_node = allocate_nnode(my_location);
-                buf_node->cell = NULL;
+                //                buf_node->cell = NULL;
 
                 buf_node->related_ast_node = NULL;
 
@@ -676,7 +676,7 @@ struct ParMYSPass : public Pass {
                 allocate_more_input_pins(buf_node, 1);
                 add_input_port_information(buf_node, 1);
 
-                char *in_pin_name = sig_full_ref_name_sig(rhs_bit, odin_netlist->identifier, cstr_bits_seen);
+                char *in_pin_name = sig_full_ref_name_sig(rhs_bit, cstr_bits_seen);
                 npin_t *in_pin = allocate_npin();
                 in_pin->name = vtr::strdup(in_pin_name);
                 in_pin->type = INPUT;
@@ -691,7 +691,7 @@ struct ParMYSPass : public Pass {
                 out_pin->name = NULL;
                 add_output_pin_to_node(buf_node, out_pin, 0);
 
-                char *output_pin_name = sig_full_ref_name_sig(lhs_bit, odin_netlist->identifier, cstr_bits_seen);
+                char *output_pin_name = sig_full_ref_name_sig(lhs_bit, cstr_bits_seen);
                 nnet_t *out_net = (nnet_t *)output_nets_hash->get(output_pin_name);
                 if (out_net == nullptr) {
                     out_net = allocate_nnet();
@@ -874,7 +874,7 @@ struct ParMYSPass : public Pass {
      * @brief to report mult/add/sub distributions and netlist statistics
      * -------------------------------------------------------------------------------------------
      */
-    void report(netlist_t *odin_netlist)
+    static void report(netlist_t *odin_netlist)
     {
 
         if (odin_netlist) {
@@ -887,9 +887,9 @@ struct ParMYSPass : public Pass {
         }
     }
 
-    void log_time(double time) { log("%.1fms", time * 1000); }
+    static void log_time(double time) { log("%.1fms", time * 1000); }
 
-    void add_hb_to_design(t_model *hb, Design *design)
+    static void add_hb_to_design(t_model *hb, Design *design)
     {
         Module *module = nullptr;
         dict<IdString, std::pair<int, bool>> wideports_cache;

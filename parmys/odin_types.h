@@ -543,7 +543,7 @@ struct attr_t {
 /* DEFINTIONS for all the different types of nodes there are.  This is also used cross-referenced in utils.c so that I can get a string version
  * of these names, so if you add new tpyes in here, be sure to add those same types in utils.c */
 struct nnode_t {
-    Yosys::RTLIL::Cell* cell;
+//    Yosys::RTLIL::Cell* cell;
     Yosys::hashlib::dict<Yosys::RTLIL::IdString, Yosys::RTLIL::Const> cell_parameters;
 
     loc_t loc;
