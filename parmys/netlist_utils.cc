@@ -66,12 +66,12 @@ nnode_t* allocate_nnode(loc_t loc) {
     new_node->sequential_level = -1;
     new_node->sequential_terminator = false;
 
-    new_node->in_queue = false;
+//    new_node->in_queue = false;
 
-    new_node->undriven_pins = 0;
-    new_node->num_undriven_pins = 0;
+//    new_node->undriven_pins = 0;
+//    new_node->num_undriven_pins = 0;
 
-    new_node->ratio = 1;
+//    new_node->ratio = 1;
 
     new_node->attributes = init_attribute();
 
@@ -109,7 +109,7 @@ nnode_t* free_nnode(nnode_t* to_free) {
 
         vtr::free(to_free->input_port_sizes);
         vtr::free(to_free->output_port_sizes);
-        vtr::free(to_free->undriven_pins);
+//        vtr::free(to_free->undriven_pins);
 
         free_attribute(to_free->attributes);
 

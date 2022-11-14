@@ -563,16 +563,16 @@ struct nnode_t {
     std::vector<std::vector<BitSpace::bit_value_t>> memory_data;
 
     // For simulation
-    int in_queue;           // Flag used by the simulator to avoid double queueing.
-    npin_t** undriven_pins; // These pins have been found by the simulator to have no driver.
-    int num_undriven_pins;
-    int ratio;                  //clock ratio for clock nodes
+//    int in_queue;           // Flag used by the simulator to avoid double queueing.
+//    npin_t** undriven_pins; // These pins have been found by the simulator to have no driver.
+//    int num_undriven_pins;
+//    int ratio;                  //clock ratio for clock nodes
     init_value_e initial_value; // initial net value
-    bool internal_clk_warn = false;
+//    bool internal_clk_warn = false;
 
     attr_t* attributes;
 
-    bool covered = false;
+//    bool covered = false;
 
     // For mixing soft and hard logic optimizations
     // a field that is used for storing weights towards the

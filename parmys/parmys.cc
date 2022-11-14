@@ -17,7 +17,6 @@
  *
  */
 
-#include "kernel/celltypes.h"
 #include "kernel/yosys.h"
 
 #include <regex>

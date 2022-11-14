@@ -23,14 +23,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
 #include "odin_types.h"
-#include "odin_util.h"
 #include "odin_globals.h"
 #include "read_xml_config_file.h"
 #include "read_xml_util.h"
 #include "pugixml.hpp"
-#include "pugixml_util.hpp"
 #include "vtr_util.h"
 #include "vtr_memory.h"
 
