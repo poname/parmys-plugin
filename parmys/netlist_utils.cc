@@ -421,75 +421,6 @@ void add_driver_pin_to_net(nnet_t* net, npin_t* pin) {
 }
 
 /*---------------------------------------------------------------------------------------------
- * (function: combine_nets)
- * 	// output net is a net with a driver
- * 	// input net is a net with all the fanouts
- * 	The lasting one is input, and output disappears
- *-------------------------------------------------------------------------------------------*/
-void combine_nets(nnet_t* output_net, nnet_t* input_net, netlist_t* netlist) {
-    /* copy the driver over to the new_net */
-    for (int i = 0; i < output_net->num_driver_pins; i++) {
-        /* IF - there is a pin assigned to this net, then copy it */
-        add_driver_pin_to_net(input_net, output_net->driver_pins[i]);
-    }
-    /* keep initial value */
-    init_value_e output_initial_value = output_net->initial_value;
-    /* in case there are any fanouts in output net (should only be zero and one nodes) */
-    join_nets(input_net, output_net);
-    /* mark that this is combined */
-    input_net->combined = true;
-
-    /* Need to keep the initial value data when we combine the nets */
-    oassert(input_net->initial_value == init_value_e::undefined || input_net->initial_value == output_net->initial_value);
-    input_net->initial_value = output_initial_value;
-
-    /* special cases for global nets */
-    if (output_net == netlist->zero_net) {
-        netlist->zero_net = input_net;
-    } else if (output_net == netlist->one_net) {
-        netlist->one_net = input_net;
-    }
-}
-
-/*---------------------------------------------------------------------------------------------
- * (function: combine_nets_with_spot_copy)
- * // output net is a net with a driver
- * // input net is a net with all the fanouts
- * In addition to combining two nets, it will change the value of 
- * all input nets driven by the output_net previously.
- *-------------------------------------------------------------------------------------------*/
-void combine_nets_with_spot_copy(nnet_t* output_net, nnet_t* input_net, long sc_spot_output, netlist_t* netlist) {
-    long in_net_idx;
-    long idx_array_size = 0;
-    long* idx_array = NULL;
-
-    // check to see if any matching input_net exist, then save its index
-    for (in_net_idx = 0; in_net_idx < input_nets_sc->size; in_net_idx++) {
-        if (input_nets_sc->data[in_net_idx] == output_net) {
-            idx_array = (long*)vtr::realloc(idx_array, sizeof(long*) * (idx_array_size + 1));
-            idx_array[idx_array_size] = in_net_idx;
-            idx_array_size += 1;
-        }
-    }
-
-    combine_nets(output_net, input_net, netlist);
-    output_net = NULL;
-    /* since the driver net is deleted, copy the spot of the input_net over */
-    output_nets_sc->data[sc_spot_output] = (void*)input_net;
-
-    // copy the spot of input_nets for other inputs driven by the output_net
-    for (in_net_idx = 0; in_net_idx < idx_array_size; in_net_idx++) {
-        char* net_name = input_nets_sc->string[idx_array[in_net_idx]];
-        input_nets_sc->data[idx_array[in_net_idx]] = (void*)input_net;
-        // check to see if there is any matching output net too.
-        if ((sc_spot_output = sc_lookup_string(output_nets_sc, net_name)) != -1)
-            output_nets_sc->data[sc_spot_output] = (void*)input_net;
-    }
-
-    vtr::free(idx_array);
-}
-
-/*---------------------------------------------------------------------------------------------
  * (function: join_nets)
  * 	Copies the fanouts from input net into net
  * TODO: improve error message
@@ -530,70 +461,6 @@ void join_nets(nnet_t* join_to_net, nnet_t* other_net) {
     free_nnet(other_net);
 }
 
-/*---------------------------------------------------------------------------------------------
- * (function: integrate_nets)
- * processing the integration of the input net, named with the 
- * full_name string (if not exist in input_nets_sc then use driver_net), 
- * with the alias net (a related module/function/task instance connection).
- *-------------------------------------------------------------------------------------------*/
-void integrate_nets(char* alias_name, char* full_name, nnet_t* driver_net) {
-    long sc_spot_output;
-    long sc_spot_input_old;
-    long sc_spot_input_new;
-
-    sc_spot_input_old = sc_lookup_string(input_nets_sc, alias_name);
-    oassert(sc_spot_input_old != -1);
-
-    /* CMM - Check if this pin should be driven by the top level VCC or GND drivers	*/
-    if (strstr(full_name, ONE_VCC_CNS)) {
-        join_nets(syn_netlist->one_net, (nnet_t*)input_nets_sc->data[sc_spot_input_old]);
-        input_nets_sc->data[sc_spot_input_old] = (void*)syn_netlist->one_net;
-    } else if (strstr(full_name, ZERO_GND_ZERO)) {
-        join_nets(syn_netlist->zero_net, (nnet_t*)input_nets_sc->data[sc_spot_input_old]);
-        input_nets_sc->data[sc_spot_input_old] = (void*)syn_netlist->zero_net;
-    } else if (strstr(full_name, ZERO_PAD_ZERO)) {
-        join_nets(syn_netlist->pad_net, (nnet_t*)input_nets_sc->data[sc_spot_input_old]);
-        input_nets_sc->data[sc_spot_input_old] = (void*)syn_netlist->pad_net;
-    }
-    /* check if the instantiation pin exists. */
-    else if ((sc_spot_output = sc_lookup_string(output_nets_sc, full_name)) == -1) {
-        /* IF - no driver, then assume that it needs to be aliased to move up as an input */
-        if ((sc_spot_input_new = sc_lookup_string(input_nets_sc, full_name)) == -1) {
-            /* if this input is not yet used in this module then we'll add it */
-            sc_spot_input_new = sc_add_string(input_nets_sc, full_name);
-
-            if (driver_net == NULL) {
-                /* copy the pin to the old spot */
-                input_nets_sc->data[sc_spot_input_new] = input_nets_sc->data[sc_spot_input_old];
-            } else {
-                /* copy the pin to the old spot */
-                input_nets_sc->data[sc_spot_input_new] = (void*)driver_net;
-                nnet_t* old_in_net = (nnet_t*)input_nets_sc->data[sc_spot_input_old];
-                join_nets((nnet_t*)input_nets_sc->data[sc_spot_input_new], old_in_net);
-                //net = NULL;
-                input_nets_sc->data[sc_spot_input_old] = (void*)driver_net;
-            }
-        } else {
-            /* already exists so we'll join the nets */
-            combine_nets((nnet_t*)input_nets_sc->data[sc_spot_input_old], (nnet_t*)input_nets_sc->data[sc_spot_input_new], syn_netlist);
-            input_nets_sc->data[sc_spot_input_old] = NULL;
-        }
-    } else {
-        /* ELSE - we've found a matching net, so add this pin to the net */
-        nnet_t* out_net = (nnet_t*)output_nets_sc->data[sc_spot_output];
-        nnet_t* in_net = (nnet_t*)input_nets_sc->data[sc_spot_input_old];
-
-        if ((out_net != in_net) && (out_net->combined == true)) {
-            /* if they haven't been combined already, then join the inputs and output */
-            join_nets(out_net, in_net);
-            /* since the driver net is deleted, copy the spot of the in_net over */
-            input_nets_sc->data[sc_spot_input_old] = (void*)out_net;
-        } else if ((out_net != in_net) && (out_net->combined == false)) {
-            // merge the out_net into the in_net and alter related string cache data for all nets driven by the out_net
-            combine_nets_with_spot_copy(out_net, in_net, sc_spot_output, syn_netlist);
-        }
-    }
-}
 /*---------------------------------------------------------------------------------------------
  * (function: remap_pin_to_new_net)
  *-------------------------------------------------------------------------------------------*/
@@ -1048,23 +915,6 @@ bool sigcmp(signal_list_t* sig, signal_list_t* be_checked) {
     return (true);
 }
 
-/*---------------------------------------------------------------------------------------------
- * (function: combine_lists_without_freeing_originals)
- *-------------------------------------------------------------------------------------------*/
-signal_list_t* combine_lists_without_freeing_originals(signal_list_t** signal_lists, int num_signal_lists) {
-    signal_list_t* return_list = init_signal_list();
-
-    int i;
-    for (i = 0; i < num_signal_lists; i++) {
-        int j;
-        if (signal_lists[i])
-            for (j = 0; j < signal_lists[i]->count; j++)
-                add_pin_to_signal_list(return_list, signal_lists[i]->pins[j]);
-    }
-
-    return return_list;
-}
-
 signal_list_t* copy_input_signals(signal_list_t* signalsvar) {
     signal_list_t* duplicate_signals = init_signal_list();
     int i;
@@ -1072,16 +922,6 @@ signal_list_t* copy_input_signals(signal_list_t* signalsvar) {
         npin_t* pin = signalsvar->pins[i];
         pin = copy_input_npin(pin);
         add_pin_to_signal_list(duplicate_signals, pin);
-    }
-    return duplicate_signals;
-}
-
-signal_list_t* copy_output_signals(signal_list_t* signalsvar) {
-    signal_list_t* duplicate_signals = init_signal_list();
-    int i;
-    for (i = 0; i < signalsvar->count; i++) {
-        npin_t* pin = signalsvar->pins[i];
-        add_pin_to_signal_list(duplicate_signals, copy_output_npin(pin));
     }
     return duplicate_signals;
 }
@@ -1096,11 +936,6 @@ static int compare_npin_t_names(const void* p1, const void* p2) {
     npin_t* pin1 = *(npin_t* const*)p1;
     npin_t* pin2 = *(npin_t* const*)p2;
     return strcmp(pin1->name, pin2->name);
-}
-
-void sort_signal_list_alphabetically(signal_list_t* list) {
-    if (list)
-        qsort(list->pins, list->count, sizeof(npin_t*), compare_npin_t_names);
 }
 
 /*---------------------------------------------------------------------------------------------
@@ -1166,97 +1001,7 @@ void free_attribute(attr_t* attribute) {
     attribute = NULL;
 }
 
-/*---------------------------------------------------------------------------
- * (function: hookup_input_pins_from_signal_list)
- * 	For each pin in this list hook it up to the inputs according to indexes and width
- *--------------------------------------------------------------------------*/
-void hookup_input_pins_from_signal_list(nnode_t* node, int n_start_idx, signal_list_t* input_list, int il_start_idx, int width, netlist_t* netlist) {
-    int i;
-
-    for (i = 0; i < width; i++) {
-        if (il_start_idx + i < input_list->count) {
-            oassert(input_list->count > (il_start_idx + i));
-            npin_t* pin = input_list->pins[il_start_idx + i];
-            add_input_pin_to_node(node, pin, n_start_idx + i);
-
-        } else {
-            /* pad with 0's */
-            add_input_pin_to_node(node, get_zero_pin(netlist), n_start_idx + i);
-
-            if (global_args.all_warnings)
-                warning_message(NETLIST, node->loc, "padding an input port with 0 for node %s\n", node->name);
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------
- * (function: hookup_hb_input_pins_from_signal_list)
- *   For each pin in this list hook it up to the inputs according to
- *   indexes and width. Extra pins are tied to PAD for later resolution.
- *--------------------------------------------------------------------------*/
-void hookup_hb_input_pins_from_signal_list(nnode_t* node, int n_start_idx, signal_list_t* input_list, int il_start_idx, int width, netlist_t* netlist) {
-    int i;
-
-    for (i = 0; i < width; i++) {
-        if (il_start_idx + i < input_list->count) {
-            oassert(input_list->count > (il_start_idx + i));
-            add_input_pin_to_node(node, input_list->pins[il_start_idx + i], n_start_idx + i);
-        } else {
-            /* connect with "pad" signal for later resolution */
-            add_input_pin_to_node(node, get_pad_pin(netlist), n_start_idx + i);
-
-            if (global_args.all_warnings)
-                warning_message(NETLIST, node->loc, "padding an input port with HB_PAD for node %s\n", node->name);
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------------------------
- * (function: hookup_output_pouts_from_signal_list)
- * 	hooks the pin into the output net, by checking for a driving net
- *-------------------------------------------------------------------------------------------*/
-void hookup_output_pins_from_signal_list(nnode_t* node, int n_start_idx, signal_list_t* output_list, int ol_start_idx, int width) {
-    int i;
-    long sc_spot_output;
-
-    for (i = 0; i < width; i++) {
-        oassert(output_list->count > (ol_start_idx + i));
-
-        /* hook outpin to the node */
-        add_output_pin_to_node(node, output_list->pins[ol_start_idx + i], n_start_idx + i);
-
-        if ((sc_spot_output = sc_lookup_string(output_nets_sc, output_list->pins[ol_start_idx + i]->name)) == -1) {
-            /* this output pin does not have a net OR we couldn't find it */
-            error_message(NETLIST, node->loc, "Net for driver (%s) doesn't exist for node %s\n", output_list->pins[ol_start_idx + i]->name, node->name);
-        }
-
-        /* hook the outpin into the net */
-        add_driver_pin_to_net(((nnet_t*)output_nets_sc->data[sc_spot_output]), output_list->pins[ol_start_idx + i]);
-    }
-}
-
 void depth_traverse_count(nnode_t* node, int* count, uintptr_t traverse_mark_number);
-/*---------------------------------------------------------------------------------------------
- * (function: count_nodes_in_netlist)
- *-------------------------------------------------------------------------------------------*/
-int count_nodes_in_netlist(netlist_t* netlist) {
-    int i;
-    int count = 0;
-
-    /* now traverse the ground and vcc pins */
-    depth_traverse_count(netlist->gnd_node, &count, COUNT_NODES);
-    depth_traverse_count(netlist->vcc_node, &count, COUNT_NODES);
-    depth_traverse_count(netlist->pad_node, &count, COUNT_NODES);
-
-    /* start with the primary input list */
-    for (i = 0; i < netlist->num_top_input_nodes; i++) {
-        if (netlist->top_input_nodes[i] != NULL) {
-            depth_traverse_count(netlist->top_input_nodes[i], &count, COUNT_NODES);
-        }
-    }
-
-    return count;
-}
 
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traverse)
@@ -1350,74 +1095,6 @@ void free_netlist(netlist_t* to_free) {
     sc_free_string_cache(to_free->nets_sc);
     sc_free_string_cache(to_free->out_pins_sc);
     sc_free_string_cache(to_free->nodes_sc);
-}
-
-/*---------------------------------------------------------------------------------------------
- * (function:  add_node_to_netlist)
- *-------------------------------------------------------------------------------------------*/
-void add_node_to_netlist(netlist_t* netlist, nnode_t* node, operation_list special_node) {
-    long sc_spot;
-
-    //	if (node->type != OUTPUT_NODE)
-    {
-        /* add the node to the list */
-        sc_spot = sc_add_string(netlist->nodes_sc, node->name);
-        if (netlist->nodes_sc->data[sc_spot] != NULL) {
-            error_message(NETLIST, node->loc, "Two nodes with the same name (%s)\n", node->name);
-        }
-        netlist->nodes_sc->data[sc_spot] = (void*)node;
-    }
-
-    if (special_node == INPUT_NODE) {
-        /* This is for clocks, gnd, and vcc */
-        /* store the input nodes for traversal */
-        netlist->top_input_nodes = (nnode_t**)vtr::realloc(netlist->top_input_nodes, sizeof(nnode_t*) * (netlist->num_top_input_nodes + 1));
-        netlist->top_input_nodes[netlist->num_top_input_nodes] = node;
-        netlist->num_top_input_nodes++;
-    } else if (node->type == INPUT_NODE) {
-        /* store the input nodes for traversal */
-        netlist->top_input_nodes = (nnode_t**)vtr::realloc(netlist->top_input_nodes, sizeof(nnode_t*) * (netlist->num_top_input_nodes + 1));
-        netlist->top_input_nodes[netlist->num_top_input_nodes] = node;
-        netlist->num_top_input_nodes++;
-    } else if (node->type == OUTPUT_NODE) {
-        netlist->top_output_nodes = (nnode_t**)vtr::realloc(netlist->top_output_nodes, sizeof(nnode_t*) * (netlist->num_top_output_nodes + 1));
-        netlist->top_output_nodes[netlist->num_top_output_nodes] = node;
-        netlist->num_top_output_nodes++;
-    } else if (node->type == FF_NODE) {
-        netlist->ff_nodes = (nnode_t**)vtr::realloc(netlist->ff_nodes, sizeof(nnode_t*) * (netlist->num_ff_nodes + 1));
-        netlist->ff_nodes[netlist->num_ff_nodes] = node;
-        netlist->num_ff_nodes++;
-    } else {
-        netlist->internal_nodes = (nnode_t**)vtr::realloc(netlist->internal_nodes, sizeof(nnode_t*) * (netlist->num_internal_nodes + 1));
-        netlist->internal_nodes[netlist->num_internal_nodes] = node;
-        netlist->num_internal_nodes++;
-    }
-}
-
-/*---------------------------------------------------------------------------------------------
- * (function: mark_clock_node )
- *-------------------------------------------------------------------------------------------*/
-void mark_clock_node(
-    netlist_t* netlist,
-    const char* clock_name) {
-    long sc_spot;
-    nnet_t* clock_net;
-    nnode_t* clock_node;
-
-    /* lookup the node */
-    if ((sc_spot = sc_lookup_string(netlist->nets_sc, clock_name)) == -1) {
-        error_message(NETLIST, unknown_location, "clock input does not exist (%s)\n", clock_name);
-    }
-    clock_net = (nnet_t*)netlist->nets_sc->data[sc_spot];
-    oassert(clock_net->num_driver_pins == 1);
-    clock_node = clock_net->driver_pins[0]->node;
-
-    netlist->clocks = (nnode_t**)vtr::realloc(netlist->clocks, sizeof(nnode_t*) * (netlist->num_clocks + 1));
-    netlist->clocks[netlist->num_clocks] = clock_node;
-    netlist->num_clocks++;
-
-    /* Mark it as a special set of inputs */
-    clock_node->type = CLOCK_NODE;
 }
 
 /*
@@ -1533,55 +1210,13 @@ npin_t* legalize_polarity(npin_t* pin, edge_type_e pin_polarity, nnode_t* node) 
 }
 
 /**
- * (function: legalize_latch_clock)
- * 
- * @brief legalize latch clock polarity to RE
- * 
- * @param pin clk pin
- * @param pin_polarity clk pin polarity
- * @param node pointer to pins node for tracking purpose
- * 
- * @return a new pin with RISING_EDGE_SENSITIVITY polarity
- */
-npin_t* legalize_latch_clock(npin_t* pin, edge_type_e pin_polarity, nnode_t* node) {
-    /* validate pins */
-    oassert(pin && node);
-    oassert(pin->type == INPUT);
-
-    /* pin and its polarity */
-    npin_t* pin_out = NULL;
-    npin_t* legalized_clk_pin = legalize_polarity(pin, pin_polarity, node);
-
-    /* create a new clock node */
-    nnode_t* clk_node = make_1port_gate(CLOCK_NODE, 1, 1, node, node->traverse_visited);
-    /* hook the pin into not node */
-    add_input_pin_to_node(clk_node, legalized_clk_pin, 0);
-    /* create output pins */
-    pin_out = allocate_npin();
-    npin_t* clk_out = allocate_npin();
-    nnet_t* clk_out_net = allocate_nnet();
-    clk_out_net->name = make_full_ref_name(NULL, NULL, NULL, clk_node->name, 0);
-    /* hook the output pin into the node */
-    add_output_pin_to_node(clk_node, clk_out, 0);
-    /* hook up new pin 1 into the new net */
-    add_driver_pin_to_net(clk_out_net, clk_out);
-    /* hook up the new pin 2 to this new net */
-    add_fanout_pin_to_net(clk_out_net, pin_out);
-
-    /* set new pin polarity */
-    pin_out->sensitivity = RISING_EDGE_SENSITIVITY;
-
-    return (pin_out);
-}
-
-/**
  * (function: reduce_input_ports)
- * 
+ *
  * @brief reduce the input ports size by removing extra pad pins
- * 
+ *
  * @param node pointer to node
  * @param netlist pointer to the current netlist
- * 
+ *
  * @return nothing, but set the node to a new node with reduced equalized
  * input port sizes (if more than one input port exist)
  */
@@ -1723,233 +1358,13 @@ chain_information_t* allocate_chain_info() {
 }
 
 /**
- *-------------------------------------------------------------------------------------------
- * (function: pure_const_biops )
- * 
- * @brief perform the node type operation for two const value
- * 
- * @param node pointing to the pow node 
- * @param netlist pointer to the current netlist file
- *-----------------------------------------------------------------------------------------*/
-void pure_const_biops(nnode_t* node, netlist_t* netlist) {
-    /* ports validation */
-    oassert(node->num_input_port_sizes == 2);
-
-    int i, j;
-    int offset = 0;
-    signal_list_t** ports = (signal_list_t**)vtr::calloc(2, sizeof(signal_list_t*));
-    for (i = 0; i < 2; i++) {
-        ports[i] = init_signal_list();
-        for (j = 0; j < node->input_port_sizes[i]; j++) {
-            add_pin_to_signal_list(ports[i], node->input_pins[i + offset]);
-        }
-        offset += node->input_port_sizes[i];
-    }
-
-    /* validate input ports */
-    oassert(is_constant_signal(ports[0], netlist));
-    oassert(is_constant_signal(ports[1], netlist));
-
-    long port1_value = constant_signal_value(ports[0], netlist);
-    long port2_value = constant_signal_value(ports[1], netlist);
-
-    long long result = 0;
-    switch (node->type) {
-        case ADD: {
-            result = port1_value + port2_value;
-            break;
-        }
-        case MINUS: {
-            result = port1_value - port2_value;
-            break;
-        }
-        case MULTIPLY: {
-            result = port1_value * port2_value;
-            break;
-        }
-        case MODULO: {
-            /* only return whole number, not fraction */
-            result = port1_value % port2_value;
-            break;
-        }
-        case DIVIDE: {
-            /* only return whole number, not fraction */
-            result = port1_value / port2_value;
-            break;
-        }
-        case POWER: {
-            result = std::pow(port1_value, port2_value);
-            break;
-        }
-        default:
-            error_message(NETLIST, node->loc,
-                          "Unsupported binary operation (%s)!", operation_list_STR[node->type][0]);
-    }
-
-    int output_width = node->num_output_pins;
-    signal_list_t* result_signal = create_constant_signal(result, output_width, netlist);
-
-    nnode_t* buf_node = make_1port_gate(BUF_NODE, output_width, output_width, node, node->traverse_visited);
-    /* hook result signals and remap outputs into buf node */
-    for (i = 0; i < output_width; i++) {
-        /* input */
-        add_input_pin_to_node(buf_node, result_signal->pins[i], i);
-        /* output */
-        remap_pin_to_new_node(node->output_pins[i], buf_node, i);
-    }
-
-    // CLEAN UP
-    for (i = 0; i < node->num_input_pins; i++) {
-        delete_npin(node->input_pins[i]);
-    }
-    free_signal_list(ports[0]);
-    free_signal_list(ports[1]);
-    free_nnode(node);
-    vtr::free(ports);
-}
-
-/**
- *-------------------------------------------------------------------------------------------
- * (function: swap_in_ports )
- * 
- * @brief swap the position of given ports
- * 
- * @param node pointing to the pow node 
- * @param idx1 port1 index
- * @param idx2 port2 index
- *-----------------------------------------------------------------------------------------*/
-void swap_ports(nnode_t*& node, int idx1, int idx2) {
-    /* validation */
-    oassert(idx1 >= 0);
-    oassert(idx2 >= 0);
-    oassert(idx1 < node->num_input_port_sizes);
-    oassert(idx2 < node->num_input_port_sizes);
-
-    int i, j;
-    int offset = 0;
-    signal_list_t** signals = (signal_list_t**)vtr::calloc(node->num_input_port_sizes, sizeof(signal_list_t*));
-
-    /* store ports in signal list */
-    for (i = 0; i < node->num_input_port_sizes; i++) {
-        signals[i] = init_signal_list();
-        add_pin_to_signal_list(signals[i], node->input_pins[i + offset]);
-        offset += node->input_port_sizes[i];
-    }
-
-    offset = 0;
-    /* allocating new node */
-    nnode_t* new_node = allocate_nnode(node->loc);
-    for (i = 0; i < node->num_input_port_sizes; i++) {
-        int port_idx = -1;
-        port_idx = (i == idx1) ? idx2 : (i == idx2) ? idx1 : i;
-
-        /* add ports information */
-        add_input_port_information(new_node, signals[port_idx]->count);
-        allocate_more_input_pins(new_node, signals[port_idx]->count);
-        /* hook pins into related port in new node */
-        for (j = 0; j < signals[port_idx]->count; j++) {
-            remap_pin_to_new_node(signals[port_idx]->pins[j], new_node, j + offset);
-        }
-        offset += signals[port_idx]->count;
-    }
-
-    /* remap output pins */
-    for (i = 0; i < node->num_output_pins; i++) {
-        /* hook input pinjs into new node */
-        remap_pin_to_new_node(node->output_pins[i], new_node, i);
-    }
-
-    /* check for signedness if possible */
-    if ((std::abs(idx1 - idx2) == 1) && (node->num_input_port_sizes == 2)) {
-        new_node->attributes->port_a_signed = node->attributes->port_b_signed;
-        new_node->attributes->port_b_signed = node->attributes->port_a_signed;
-    }
-
-    // CLEAN UP
-    for (i = 0; i < node->num_input_port_sizes; i++) {
-        free_signal_list(signals[i]);
-    }
-    vtr::free(signals);
-    free_nnode(node);
-
-    node = new_node;
-}
-
-/**
- * (function: equalize_input_ports_size)
- * 
- * @brief equalizing the input ports for the given node
- * 
- * NOTE: at max TWO input ports is supported
- * 
- * @param node pointing to a shift node 
- * @param traverse_mark_number unique traversal mark for blif elaboration pass
- * @param netlist pointer to the current netlist file
- */
-void equalize_input_ports_size(nnode_t*& node, uintptr_t traverse_mark_number, netlist_t* netlist) {
-    oassert(node->traverse_visited == traverse_mark_number);
-    oassert(node->num_input_port_sizes > 0 && node->num_input_port_sizes <= 2);
-
-    /**
-     * INPUTS
-     *  A: (width_a)
-     *  B: (width_b) [optional]
-     * OUTPUT
-     *  Y: width_y
-     */
-    /* removing extra pad pins based on the signedness of ports */
-    reduce_input_ports(node, netlist);
-
-    int port_a_size = node->input_port_sizes[0];
-    int port_b_size = -1;
-    if (node->num_input_port_sizes == 2) {
-        port_b_size = node->input_port_sizes[1];
-        /* validate inputport sizes */
-        oassert(port_a_size == port_b_size);
-    }
-
-    int port_y_size = node->output_port_sizes[0];
-
-    /* no change is needed */
-    if (port_a_size == port_y_size)
-        return;
-
-    /* creating the new node */
-    nnode_t* new_node = (port_b_size == -1) ? make_1port_gate(node->type, port_a_size, port_y_size, node, traverse_mark_number)
-                                            : make_2port_gate(node->type, port_a_size, port_b_size, port_y_size, node, traverse_mark_number);
-
-    /* copy signedness attributes */
-    copy_signedness(new_node->attributes, node->attributes);
-
-    int i;
-    for (i = 0; i < node->num_input_pins; i++) {
-        /* remapping the a pins */
-        remap_pin_to_new_node(node->input_pins[i],
-                              new_node,
-                              i);
-    }
-
-    /* Connecting output pins */
-    for (i = 0; i < port_y_size; i++) {
-        remap_pin_to_new_node(node->output_pins[i],
-                              new_node,
-                              i);
-    }
-
-    // CLEAN UP
-    free_nnode(node);
-
-    node = new_node;
-}
-
-/**
  * (function: equalize_port_sizes)
- * 
+ *
  * @brief equalizing the input and output ports for the given node
- * 
+ *
  * NOTE: at max TWO input ports is supported
- * 
- * @param node pointing to a shift node 
+ *
+ * @param node pointing to a shift node
  * @param traverse_mark_number unique traversal mark for blif elaboration pass
  * @param netlist pointer to the current netlist file
  */
@@ -2046,17 +1461,6 @@ void remove_fanout_pins_from_net(nnet_t* net, npin_t* /*pin*/, int id) {
     }
     net->fanout_pins[i] = NULL;
     net->num_fanout_pins--;
-}
-
-void remove_driver_pins_from_net(nnet_t* net, npin_t* /*pin*/, int id) {
-    int i;
-    for (i = id; i < net->num_driver_pins - 1; i++) {
-        net->driver_pins[i] = net->driver_pins[i + 1];
-        if (net->driver_pins[i] != NULL)
-            net->driver_pins[i]->pin_net_idx = i;
-    }
-    net->driver_pins[i] = NULL;
-    net->num_driver_pins--;
 }
 
 void delete_npin(npin_t* pin) {

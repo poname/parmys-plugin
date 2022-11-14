@@ -34,11 +34,6 @@ extern t_model* dual_port_rams;
 #define HARD_RAM_ADDR_LIMIT 33
 #define SOFT_RAM_ADDR_LIMIT 10
 
-struct t_memory_port_sizes {
-    long size;
-    char* name;
-};
-
 struct sp_ram_signals {
     signal_list_t* addr;
     signal_list_t* data;

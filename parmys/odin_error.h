@@ -13,16 +13,12 @@ struct loc_t {
 };
 
 enum odin_error {
-    NO_ERROR,
     UTIL,
     PARSE_ARGS,
-    PARSER,
     AST,
     RESOLVE,
     NETLIST,
     PARSE_BLIF,
-    OUTPUT_BLIF,
-    SIMULATION,
 };
 
 extern const char* odin_error_STR[];

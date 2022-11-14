@@ -161,11 +161,6 @@ struct global_args_t {
     argparse::ArgValue<float> mults_ratio;
 };
 
-/**
- * defined in enum_str.cpp
- */
-extern const char* ieee_std_STR[];
-
 extern const char* ZERO_GND_ZERO;
 extern const char* ONE_VCC_CNS;
 extern const char* ZERO_PAD_ZERO;

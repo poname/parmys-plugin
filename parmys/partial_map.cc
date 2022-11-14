@@ -20,74 +20,71 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  *
- * @file: this file includes the instantiation process of Odin-II 
- * supported cells. Technically, the Odin-II partial mapper transforms 
+ * @file: this file includes the instantiation process of Odin-II
+ * supported cells. Technically, the Odin-II partial mapper transforms
  * netlist to a target device technology dependent cells. The partial
  * decides the hard/soft logic inference of logic blocks according to
  * the target architecture and specified threshold in command arguments.
  */
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <algorithm>
-#include "odin_types.h"
 #include "odin_globals.h"
+#include "odin_types.h"
+#include <stdio.h>
+#include <string.h>
 
 #include "netlist_utils.h"
-#include "netlist_cleanup.h"
 #include "node_creation_library.h"
 #include "odin_util.h"
 
-#include "partial_map.h"
-#include "multipliers.h"
-#include "hard_blocks.h"
-#include "math.h"
-#include "memories.h"
 #include "adders.h"
+#include "hard_blocks.h"
+
+#include "memories.h"
+
+#include "partial_map.h"
 #include "subtractions.h"
-// #include "Multiplexer.hpp"
 #include "vtr_memory.h"
 #include "vtr_util.h"
 
 // void depth_first_traversal_to_partial_map(short marker_value, netlist_t* netlist);
-void depth_first_traverse_partial_map(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+void depth_first_traverse_partial_map(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist);
 
-void partial_map_node(nnode_t* node, short traverse_number, netlist_t* netlist);
+void partial_map_node(nnode_t *node, short traverse_number, netlist_t *netlist);
 
-void instantiate_not_logic(nnode_t* node, short mark, netlist_t* netlist);
-bool eliminate_buffer(nnode_t* node, short, netlist_t*);
-void instantiate_bitwise_logic(nnode_t* node, operation_list op, short mark, netlist_t* netlist);
-void instantiate_bitwise_reduction(nnode_t* node, operation_list op, short mark);
-void instantiate_logical_logic(nnode_t* node, operation_list op, short mark);
-void instantiate_EQUAL(nnode_t* node, operation_list type, short mark, netlist_t* netlist);
-void instantiate_GE(nnode_t* node, operation_list type, short mark, netlist_t* netlist);
-void instantiate_GT(nnode_t* node, operation_list type, short mark, netlist_t* netlist);
-void instantiate_shift(nnode_t* node, short mark, netlist_t* netlist);
-void instantiate_unary_sub(nnode_t* node, short mark, netlist_t* netlist);
-void instantiate_sub_w_carry(nnode_t* node, short mark, netlist_t* netlist);
-void instantiate_sub_w_borrow(nnode_t* node, short mark, netlist_t* netlist);
+void instantiate_not_logic(nnode_t *node, short mark, netlist_t *netlist);
+bool eliminate_buffer(nnode_t *node, short, netlist_t *);
+void instantiate_bitwise_logic(nnode_t *node, operation_list op, short mark, netlist_t *netlist);
+void instantiate_bitwise_reduction(nnode_t *node, operation_list op, short mark);
+void instantiate_logical_logic(nnode_t *node, operation_list op, short mark);
+void instantiate_EQUAL(nnode_t *node, operation_list type, short mark, netlist_t *netlist);
+void instantiate_GE(nnode_t *node, operation_list type, short mark, netlist_t *netlist);
+void instantiate_GT(nnode_t *node, operation_list type, short mark, netlist_t *netlist);
+void instantiate_shift(nnode_t *node, short mark, netlist_t *netlist);
+void instantiate_unary_sub(nnode_t *node, short mark, netlist_t *netlist);
+void instantiate_sub_w_carry(nnode_t *node, short mark, netlist_t *netlist);
+void instantiate_sub_w_borrow(nnode_t *node, short mark, netlist_t *netlist);
 
-void instantiate_soft_logic_ram(nnode_t* node, short mark, netlist_t* netlist);
+void instantiate_soft_logic_ram(nnode_t *node, short mark, netlist_t *netlist);
 
-static void instantiate_constant_shift(nnode_t* node, operation_list type, short mark, netlist_t* netlist);
-static void instantiate_variable_shift(nnode_t* node, operation_list type, short mark, netlist_t* netlist);
+static void instantiate_constant_shift(nnode_t *node, operation_list type, short mark, netlist_t *netlist);
+static void instantiate_variable_shift(nnode_t *node, operation_list type, short mark, netlist_t *netlist);
 
 /*-------------------------------------------------------------------------
  * (function: partial_map_top)
  *-----------------------------------------------------------------------*/
-void partial_map_top(netlist_t* netlist) {
+void partial_map_top(netlist_t *netlist)
+{
     /* depending on the output target choose how to do partial mapping */
     // if (configuration.output_file_type == file_type_e::_BLIF) { @TODO
-        /* do the partial map without any larger structures identified */
-        depth_first_traversal_to_partial_map(PARTIAL_MAP_TRAVERSE_VALUE, netlist);
+    /* do the partial map without any larger structures identified */
+    depth_first_traversal_to_partial_map(PARTIAL_MAP_TRAVERSE_VALUE, netlist);
     // } @TODO
 }
 
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traversal_to_parital_map()
  *-------------------------------------------------------------------------------------------*/
-void depth_first_traversal_to_partial_map(short marker_value, netlist_t* netlist) {
+void depth_first_traversal_to_partial_map(short marker_value, netlist_t *netlist)
+{
     int i;
 
     /* start with the primary input list */
@@ -105,7 +102,8 @@ void depth_first_traversal_to_partial_map(short marker_value, netlist_t* netlist
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traverse)
  *-------------------------------------------------------------------------------------------*/
-void depth_first_traverse_partial_map(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist) {
+void depth_first_traverse_partial_map(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist)
+{
     int i, j;
 
     if (node->traverse_visited != traverse_mark_number) {
@@ -116,7 +114,7 @@ void depth_first_traverse_partial_map(nnode_t* node, uintptr_t traverse_mark_num
 
         for (i = 0; i < node->num_output_pins; i++) {
             if (node->output_pins[i]->net) {
-                nnet_t* next_net = node->output_pins[i]->net;
+                nnet_t *next_net = node->output_pins[i]->net;
                 if (next_net->fanout_pins) {
                     for (j = 0; j < next_net->num_fanout_pins; j++) {
                         if (next_net->fanout_pins[j]) {
@@ -138,156 +136,158 @@ void depth_first_traverse_partial_map(nnode_t* node, uintptr_t traverse_mark_num
 /*----------------------------------------------------------------------
  * (function: partial_map_node)
  *--------------------------------------------------------------------*/
-void partial_map_node(nnode_t* node, short traverse_number, netlist_t* netlist) {
+void partial_map_node(nnode_t *node, short traverse_number, netlist_t *netlist)
+{
     switch (node->type) {
-        case BITWISE_NOT:
-            instantiate_not_logic(node, traverse_number, netlist);
-            break;
-        case BUF_NODE:
-            eliminate_buffer(node, traverse_number, netlist);
-            break;
-        case BITWISE_AND:
-        case BITWISE_OR:
-        case BITWISE_NAND:
-        case BITWISE_NOR:
-        case BITWISE_XNOR:
-        case BITWISE_XOR:
-            if (node->num_input_port_sizes >= 2) {
-                instantiate_bitwise_logic(node, node->type, traverse_number, netlist);
+    case BITWISE_NOT:
+        instantiate_not_logic(node, traverse_number, netlist);
+        break;
+    case BUF_NODE:
+        eliminate_buffer(node, traverse_number, netlist);
+        break;
+    case BITWISE_AND:
+    case BITWISE_OR:
+    case BITWISE_NAND:
+    case BITWISE_NOR:
+    case BITWISE_XNOR:
+    case BITWISE_XOR:
+        if (node->num_input_port_sizes >= 2) {
+            instantiate_bitwise_logic(node, node->type, traverse_number, netlist);
+        } else if (node->num_input_port_sizes == 1) {
+            instantiate_bitwise_reduction(node, node->type, traverse_number);
+        } else
+            oassert(false);
+        break;
+
+    case LOGICAL_OR:
+    case LOGICAL_AND:
+    case LOGICAL_NOR:
+    case LOGICAL_NAND:
+    case LOGICAL_XOR:
+    case LOGICAL_XNOR:
+        if (node->num_input_port_sizes == 2) {
+            instantiate_logical_logic(node, node->type, traverse_number);
+        }
+        break;
+
+    case LOGICAL_NOT:
+        /* don't need to do anything since this is a reduction */
+        break;
+
+    case ADD:
+        if (hard_adders && node->bit_width >= min_threshold_adder) {
+            // Check if the size of this adder is greater than the hard vs soft logic threshold
+            instantiate_hard_adder(node, traverse_number, netlist);
+        } else {
+            instantiate_add_w_carry(node, traverse_number, netlist);
+        }
+        break;
+    case MINUS:
+        if (hard_adders) {
+            if (node->num_input_port_sizes == 3) {
+                int max_num = (node->input_port_sizes[0] >= node->input_port_sizes[1]) ? node->input_port_sizes[0] : node->input_port_sizes[1];
+                if (max_num >= min_add)
+                    instantiate_hard_adder_subtraction(node, traverse_number, netlist);
+                else
+                    instantiate_add_w_carry(node, traverse_number, netlist);
+            } else if (node->num_input_port_sizes == 2) {
+                instantiate_sub_w_carry(node, traverse_number, netlist);
             } else if (node->num_input_port_sizes == 1) {
-                instantiate_bitwise_reduction(node, node->type, traverse_number);
+                instantiate_unary_sub(node, traverse_number, netlist);
             } else
                 oassert(false);
-            break;
-
-        case LOGICAL_OR:
-        case LOGICAL_AND:
-        case LOGICAL_NOR:
-        case LOGICAL_NAND:
-        case LOGICAL_XOR:
-        case LOGICAL_XNOR:
-            if (node->num_input_port_sizes == 2) {
-                instantiate_logical_logic(node, node->type, traverse_number);
-            }
-            break;
-
-        case LOGICAL_NOT:
-            /* don't need to do anything since this is a reduction */
-            break;
-
-        case ADD:
-            if (hard_adders && node->bit_width >= min_threshold_adder) {
-                // Check if the size of this adder is greater than the hard vs soft logic threshold
-                instantiate_hard_adder(node, traverse_number, netlist);
-            } else {
-                instantiate_add_w_carry(node, traverse_number, netlist);
-            }
-            break;
-        case MINUS:
-            if (hard_adders) {
-                if (node->num_input_port_sizes == 3) {
-                    int max_num = (node->input_port_sizes[0] >= node->input_port_sizes[1]) ? node->input_port_sizes[0] : node->input_port_sizes[1];
-                    if (max_num >= min_add)
-                        instantiate_hard_adder_subtraction(node, traverse_number, netlist);
-                    else
-                        instantiate_add_w_carry(node, traverse_number, netlist);
-                } else if (node->num_input_port_sizes == 2) {
-                    instantiate_sub_w_carry(node, traverse_number, netlist);
-                } else if (node->num_input_port_sizes == 1) {
-                    instantiate_unary_sub(node, traverse_number, netlist);
-                } else
-                    oassert(false);
-            } else {
-                if (node->num_input_port_sizes == 3) {
-                    instantiate_sub_w_borrow(node, traverse_number, netlist);
-                } else if (node->num_input_port_sizes == 2) {
-                    instantiate_sub_w_carry(node, traverse_number, netlist);
-                } else if (node->num_input_port_sizes == 1) {
-                    instantiate_unary_sub(node, traverse_number, netlist);
-                } else
-                    oassert(false);
-            }
-
-            break;
-        case LOGICAL_EQUAL:
-        case NOT_EQUAL:
-            instantiate_EQUAL(node, node->type, traverse_number, netlist);
-            break;
-        case GTE:
-        case LTE:
-            instantiate_GE(node, node->type, traverse_number, netlist);
-            break;
-        case GT:
-        case LT:
-            instantiate_GT(node, node->type, traverse_number, netlist);
-            break;
-        case SL:
-        case ASL:
-        case SR:
-        case ASR:
-            instantiate_shift(node, traverse_number, netlist);
-            break;
-        case MULTI_PORT_MUX:
-            instantiate_multi_port_mux(node, traverse_number, netlist);
-            break;
-        // case MULTIPORT_nBIT_SMUX:
-        //     instantiate_multi_port_n_bits_mux(node, traverse_number, netlist);
-        //     break;
-        case MULTIPLY: {
-            mixer->partial_map_node(node, traverse_number, netlist);
-            break;
+        } else {
+            if (node->num_input_port_sizes == 3) {
+                instantiate_sub_w_borrow(node, traverse_number, netlist);
+            } else if (node->num_input_port_sizes == 2) {
+                instantiate_sub_w_carry(node, traverse_number, netlist);
+            } else if (node->num_input_port_sizes == 1) {
+                instantiate_unary_sub(node, traverse_number, netlist);
+            } else
+                oassert(false);
         }
-        case MEMORY: {
-            ast_node_t* ast_node = node->related_ast_node;
-            char* identifier = ast_node->identifier_node->types.identifier;
-            if (find_hard_block(identifier)) {
-                long depth = is_sp_ram(node) ? get_sp_ram_depth(node) : get_dp_ram_depth(node);
-                long width = is_sp_ram(node) ? get_sp_ram_width(node) : get_dp_ram_width(node);
 
-                // If the memory satisfies the threshold for the use of a hard logic block, use one.
-                if (depth > configuration.soft_logic_memory_depth_threshold || width > configuration.soft_logic_memory_width_threshold) {
-                    instantiate_hard_block(node, traverse_number, netlist);
-                } else {
-                    printf("\tInferring soft logic ram: %zux%zu\n", width, depth);
-                    instantiate_soft_logic_ram(node, traverse_number, netlist);
-                }
+        break;
+    case LOGICAL_EQUAL:
+    case NOT_EQUAL:
+        instantiate_EQUAL(node, node->type, traverse_number, netlist);
+        break;
+    case GTE:
+    case LTE:
+        instantiate_GE(node, node->type, traverse_number, netlist);
+        break;
+    case GT:
+    case LT:
+        instantiate_GT(node, node->type, traverse_number, netlist);
+        break;
+    case SL:
+    case ASL:
+    case SR:
+    case ASR:
+        instantiate_shift(node, traverse_number, netlist);
+        break;
+    case MULTI_PORT_MUX:
+        instantiate_multi_port_mux(node, traverse_number, netlist);
+        break;
+    // case MULTIPORT_nBIT_SMUX:
+    //     instantiate_multi_port_n_bits_mux(node, traverse_number, netlist);
+    //     break;
+    case MULTIPLY: {
+        mixer->partial_map_node(node, traverse_number, netlist);
+        break;
+    }
+    case MEMORY: {
+        ast_node_t *ast_node = node->related_ast_node;
+        char *identifier = ast_node->identifier_node->types.identifier;
+        if (find_hard_block(identifier)) {
+            long depth = is_sp_ram(node) ? get_sp_ram_depth(node) : get_dp_ram_depth(node);
+            long width = is_sp_ram(node) ? get_sp_ram_width(node) : get_dp_ram_width(node);
+
+            // If the memory satisfies the threshold for the use of a hard logic block, use one.
+            if (depth > configuration.soft_logic_memory_depth_threshold || width > configuration.soft_logic_memory_width_threshold) {
+                instantiate_hard_block(node, traverse_number, netlist);
             } else {
+                printf("\tInferring soft logic ram: %zux%zu\n", width, depth);
                 instantiate_soft_logic_ram(node, traverse_number, netlist);
             }
-            break;
+        } else {
+            instantiate_soft_logic_ram(node, traverse_number, netlist);
         }
-        case HARD_IP:
-            instantiate_hard_block(node, traverse_number, netlist);
+        break;
+    }
+    case HARD_IP:
+        instantiate_hard_block(node, traverse_number, netlist);
 
-            break;
-        case ADDER_FUNC:
-        case CARRY_FUNC:
-        case MUX_2:
-        case SMUX_2:
-        case FF_NODE:
-        case INPUT_NODE:
-        case CLOCK_NODE:
-        case OUTPUT_NODE:
-        case GND_NODE:
-        case VCC_NODE:
-        case PAD_NODE:
-            /* some nodes already in the form that is mapable */
-            break;
-        case SKIP : // should skip
-            instantiate_hard_block(node, traverse_number, netlist);
-            break;
-        case CASE_EQUAL:
-        case CASE_NOT_EQUAL:
-        case DIVIDE:
-        case MODULO:
-        case MULTIPORT_nBIT_SMUX:
-        default:
-            error_message(NETLIST, node->loc, "%s", "Partial map: node should have been converted to softer version.");
-            break;
+        break;
+    case ADDER_FUNC:
+    case CARRY_FUNC:
+    case MUX_2:
+    case SMUX_2:
+    case FF_NODE:
+    case INPUT_NODE:
+    case CLOCK_NODE:
+    case OUTPUT_NODE:
+    case GND_NODE:
+    case VCC_NODE:
+    case PAD_NODE:
+        /* some nodes already in the form that is mapable */
+        break;
+    case SKIP: // should skip
+        instantiate_hard_block(node, traverse_number, netlist);
+        break;
+    case CASE_EQUAL:
+    case CASE_NOT_EQUAL:
+    case DIVIDE:
+    case MODULO:
+    case MULTIPORT_nBIT_SMUX:
+    default:
+        error_message(NETLIST, node->loc, "%s", "Partial map: node should have been converted to softer version.");
+        break;
     }
 }
 
-void instantiate_soft_logic_ram(nnode_t* node, short mark, netlist_t* netlist) {
+void instantiate_soft_logic_ram(nnode_t *node, short mark, netlist_t *netlist)
+{
     if (is_sp_ram(node))
         instantiate_soft_single_port_ram(node, mark, netlist);
     else if (is_dp_ram(node))
@@ -300,19 +300,20 @@ void instantiate_soft_logic_ram(nnode_t* node, short mark, netlist_t* netlist) {
  * (function: instantiate_multi_port_mux )
  * 	Makes the multiport into a series of 2-Mux-decoded
  *-------------------------------------------------------------------------------------------*/
-void instantiate_multi_port_mux(nnode_t* node, short mark, netlist_t* /*netlist*/) {
+void instantiate_multi_port_mux(nnode_t *node, short mark, netlist_t * /*netlist*/)
+{
     int i, j;
     int width_of_one_hot_logic;
     int num_ports;
     int port_offset;
-    nnode_t** muxes;
+    nnode_t **muxes;
 
     /* setup the calculations for padding and indexing */
     width_of_one_hot_logic = node->input_port_sizes[0];
     num_ports = node->num_input_port_sizes;
     port_offset = node->input_port_sizes[1];
 
-    muxes = (nnode_t**)vtr::malloc(sizeof(nnode_t*) * (num_ports - 1));
+    muxes = (nnode_t **)vtr::malloc(sizeof(nnode_t *) * (num_ports - 1));
     for (i = 0; i < num_ports - 1; i++) {
         muxes[i] = make_2port_gate(MUX_2, width_of_one_hot_logic, width_of_one_hot_logic, 1, node, mark);
     }
@@ -339,12 +340,13 @@ void instantiate_multi_port_mux(nnode_t* node, short mark, netlist_t* /*netlist*
 /*---------------------------------------------------------------------------------------------
  * (function: instantiate_not_logic )
  *-------------------------------------------------------------------------------------------*/
-void instantiate_not_logic(nnode_t* node, short mark, netlist_t* /*netlist*/) {
+void instantiate_not_logic(nnode_t *node, short mark, netlist_t * /*netlist*/)
+{
     int width = node->num_input_pins;
-    nnode_t** new_not_cells;
+    nnode_t **new_not_cells;
     int i;
 
-    new_not_cells = (nnode_t**)vtr::malloc(sizeof(nnode_t*) * width);
+    new_not_cells = (nnode_t **)vtr::malloc(sizeof(nnode_t *) * width);
 
     for (i = 0; i < width; i++) {
         new_not_cells[i] = make_not_gate(node, mark);
@@ -366,7 +368,8 @@ void instantiate_not_logic(nnode_t* node, short mark, netlist_t* /*netlist*/) {
  * 	Buffers just pass through signals
  * 	Returns true if the buffer could be eliminated
  *-------------------------------------------------------------------------------------------*/
-bool eliminate_buffer(nnode_t* node, short, netlist_t*) {
+bool eliminate_buffer(nnode_t *node, short, netlist_t *)
+{
     bool buffer_is_removed = true;
     /* for now we just pass the signals directly through */
     for (int i = 0; i < node->num_input_pins; i++) {
@@ -399,14 +402,15 @@ bool eliminate_buffer(nnode_t* node, short, netlist_t*) {
 /*---------------------------------------------------------------------------------------------
  * (function: instantiate_logical_logic )
  *-------------------------------------------------------------------------------------------*/
-void instantiate_logical_logic(nnode_t* node, operation_list op, short mark) {
+void instantiate_logical_logic(nnode_t *node, operation_list op, short mark)
+{
     int i;
     int port_B_offset;
     int width_a;
     int width_b;
-    nnode_t* new_logic_cell;
-    nnode_t* reduction1;
-    nnode_t* reduction2;
+    nnode_t *new_logic_cell;
+    nnode_t *reduction1;
+    nnode_t *reduction2;
 
     oassert(node->num_input_pins > 0);
     oassert(node->num_input_port_sizes == 2);
@@ -444,10 +448,11 @@ void instantiate_logical_logic(nnode_t* node, operation_list op, short mark) {
  * (function: instantiate_bitwise_reduction )
  * 	Makes 2 input gates to break into bitwise
  *-------------------------------------------------------------------------------------------*/
-void instantiate_bitwise_reduction(nnode_t* node, operation_list op, short mark) {
+void instantiate_bitwise_reduction(nnode_t *node, operation_list op, short mark)
+{
     int i;
     int width_a;
-    nnode_t* new_logic_cell;
+    nnode_t *new_logic_cell;
     operation_list cell_op;
 
     oassert(node->num_input_pins > 0);
@@ -457,34 +462,34 @@ void instantiate_bitwise_reduction(nnode_t* node, operation_list op, short mark)
     width_a = node->input_port_sizes[0];
 
     switch (op) {
-        case BITWISE_AND:
-        case LOGICAL_AND:
-            cell_op = LOGICAL_AND;
-            break;
-        case BITWISE_OR:
-        case LOGICAL_OR:
-            cell_op = LOGICAL_OR;
-            break;
-        case BITWISE_NAND:
-        case LOGICAL_NAND:
-            cell_op = LOGICAL_NAND;
-            break;
-        case BITWISE_NOR:
-        case LOGICAL_NOR:
-            cell_op = LOGICAL_NOR;
-            break;
-        case BITWISE_XNOR:
-        case LOGICAL_XNOR:
-            cell_op = LOGICAL_XNOR;
-            break;
-        case BITWISE_XOR:
-        case LOGICAL_XOR:
-            cell_op = LOGICAL_XOR;
-            break;
-        default:
-            cell_op = NO_OP;
-            oassert(false);
-            break;
+    case BITWISE_AND:
+    case LOGICAL_AND:
+        cell_op = LOGICAL_AND;
+        break;
+    case BITWISE_OR:
+    case LOGICAL_OR:
+        cell_op = LOGICAL_OR;
+        break;
+    case BITWISE_NAND:
+    case LOGICAL_NAND:
+        cell_op = LOGICAL_NAND;
+        break;
+    case BITWISE_NOR:
+    case LOGICAL_NOR:
+        cell_op = LOGICAL_NOR;
+        break;
+    case BITWISE_XNOR:
+    case LOGICAL_XNOR:
+        cell_op = LOGICAL_XNOR;
+        break;
+    case BITWISE_XOR:
+    case LOGICAL_XOR:
+        cell_op = LOGICAL_XOR;
+        break;
+    default:
+        cell_op = NO_OP;
+        oassert(false);
+        break;
     }
     /* instantiate the cells */
     new_logic_cell = make_1port_logic_gate(cell_op, width_a, node, mark);
@@ -503,42 +508,44 @@ void instantiate_bitwise_reduction(nnode_t* node, operation_list op, short mark)
  * (function: instantiate_bitwise_logic )
  * 	Makes 2 input gates to break into bitwise
  *-------------------------------------------------------------------------------------------*/
-void instantiate_bitwise_logic(nnode_t* node, operation_list op, short mark, netlist_t* netlist) {
+void instantiate_bitwise_logic(nnode_t *node, operation_list op, short mark, netlist_t *netlist)
+{
     int i, j;
 
     operation_list cell_op;
-    if (!node) return;
+    if (!node)
+        return;
     oassert(node->num_input_pins > 0);
     oassert(node->num_input_port_sizes >= 2);
 
     switch (op) {
-        case BITWISE_AND:
-            cell_op = LOGICAL_AND;
-            break;
-        case BITWISE_OR:
-            cell_op = LOGICAL_OR;
-            break;
-        case BITWISE_NAND:
-            cell_op = LOGICAL_NAND;
-            break;
-        case BITWISE_NOR:
-            cell_op = LOGICAL_NOR;
-            break;
-        case BITWISE_XNOR:
-            cell_op = LOGICAL_XNOR;
-            break;
-        case BITWISE_XOR:
-            cell_op = LOGICAL_XOR;
-            break;
-        default:
-            cell_op = NO_OP;
-            oassert(false);
-            break;
+    case BITWISE_AND:
+        cell_op = LOGICAL_AND;
+        break;
+    case BITWISE_OR:
+        cell_op = LOGICAL_OR;
+        break;
+    case BITWISE_NAND:
+        cell_op = LOGICAL_NAND;
+        break;
+    case BITWISE_NOR:
+        cell_op = LOGICAL_NOR;
+        break;
+    case BITWISE_XNOR:
+        cell_op = LOGICAL_XNOR;
+        break;
+    case BITWISE_XOR:
+        cell_op = LOGICAL_XOR;
+        break;
+    default:
+        cell_op = NO_OP;
+        oassert(false);
+        break;
     }
 
     /* connect inputs.  In the case that a signal is smaller than the other then zero pad */
     for (i = 0; i < node->output_port_sizes[0]; i++) {
-        nnode_t* new_logic_cells = make_nport_gate(cell_op, node->num_input_port_sizes, 1, 1, node, mark);
+        nnode_t *new_logic_cells = make_nport_gate(cell_op, node->num_input_port_sizes, 1, 1, node, mark);
         int current_port_offset = 0;
         /* Joining the inputs to the input 1 of that gate */
         for (j = 0; j < node->num_input_port_sizes; j++) {
@@ -565,13 +572,14 @@ void instantiate_bitwise_logic(nnode_t* node, operation_list op, short mark, net
  *	multi-output logic functions (BLIF).  We use one function for the
  *	add, and one for the carry.
  *------------------------------------------------------------------------*/
-void instantiate_add_w_carry(nnode_t* node, short mark, netlist_t* netlist) {
+void instantiate_add_w_carry(nnode_t *node, short mark, netlist_t *netlist)
+{
     // define locations in array when fetching pins
     const int out = 0, input_a = 1, input_b = 2, pinout_count = 3;
 
     oassert(node->num_input_pins > 0);
 
-    int* width = (int*)vtr::malloc(pinout_count * sizeof(int));
+    int *width = (int *)vtr::malloc(pinout_count * sizeof(int));
 
     if (node->num_input_port_sizes == 2)
         width[out] = node->output_port_sizes[0];
@@ -591,13 +599,14 @@ void instantiate_add_w_carry(nnode_t* node, short mark, netlist_t* netlist) {
  * 	This subtraction is intended for sof subtraction with output formats that can't handle
  * 	multi output logic functions.  We split the add and the carry over two logic functions.
  *-------------------------------------------------------------------------------------------*/
-void instantiate_sub_w_carry(nnode_t* node, short mark, netlist_t* netlist) {
+void instantiate_sub_w_carry(nnode_t *node, short mark, netlist_t *netlist)
+{
     // define locations in array when fetching pins
     const int out = 0, input_a = 1, input_b = 2, pinout_count = 3;
 
     oassert(node->num_input_pins > 0);
 
-    int* width = (int*)vtr::malloc(pinout_count * sizeof(int));
+    int *width = (int *)vtr::malloc(pinout_count * sizeof(int));
     width[out] = node->output_port_sizes[0];
 
     if (node->num_input_port_sizes == 1) {
@@ -616,14 +625,15 @@ void instantiate_sub_w_carry(nnode_t* node, short mark, netlist_t* netlist) {
 /**
  *---------------------------------------------------------------------------------------------
  * (function: instantiate_sub_w_borrow )
- * 
+ *
  * @brief instantiating a single bit subtraction circuit with borrow_in and borrow_out
- * 
- * @param node pointing to a logical not node 
+ *
+ * @param node pointing to a logical not node
  * @param mark unique traversal mark for blif elaboration pass
  * @param netlist pointer to the current netlist file
  *-------------------------------------------------------------------------------------------*/
-void instantiate_sub_w_borrow(nnode_t* node, short mark, netlist_t* netlist) {
+void instantiate_sub_w_borrow(nnode_t *node, short mark, netlist_t *netlist)
+{
     /* to validate the input otuptu ports */
     oassert(node->num_input_port_sizes > 1);
     oassert(node->num_output_port_sizes > 0);
@@ -640,23 +650,22 @@ void instantiate_sub_w_borrow(nnode_t* node, short mark, netlist_t* netlist) {
  * (function:  instantiate_unary_sub )
  *	Does 2's complement which is the equivalent of a unary subtraction as a HW implementation.
  *-------------------------------------------------------------------------------------------*/
-void instantiate_unary_sub(nnode_t* node, short mark, netlist_t* netlist) {
-    instantiate_sub_w_carry(node, mark, netlist);
-}
+void instantiate_unary_sub(nnode_t *node, short mark, netlist_t *netlist) { instantiate_sub_w_carry(node, mark, netlist); }
 
 /*---------------------------------------------------------------------------------------------
  * (function: instantiate_EQUAL )
  *	Builds the hardware for an equal comparison by building EQ for parallel lines and then
  *	taking them all through an AND tree.
  *-------------------------------------------------------------------------------------------*/
-void instantiate_EQUAL(nnode_t* node, operation_list type, short mark, netlist_t* netlist) {
+void instantiate_EQUAL(nnode_t *node, operation_list type, short mark, netlist_t *netlist)
+{
     int width_a;
     int width_b;
     int width_max;
     int i;
     int port_B_offset;
-    nnode_t* compare;
-    nnode_t* combine;
+    nnode_t *compare;
+    nnode_t *combine;
 
     oassert(node->num_output_pins == 1);
     oassert(node->num_input_pins > 0);
@@ -723,7 +732,8 @@ void instantiate_EQUAL(nnode_t* node, operation_list type, short mark, netlist_t
  *	Defines the HW needed for greter than equal with EQ, GT, AND and OR gates to create
  *	the appropriate logic function.
  *-------------------------------------------------------------------------------------------*/
-void instantiate_GT(nnode_t* node, operation_list type, short mark, netlist_t* netlist) {
+void instantiate_GT(nnode_t *node, operation_list type, short mark, netlist_t *netlist)
+{
     int width_a;
     int width_b;
     int width_max;
@@ -733,10 +743,10 @@ void instantiate_GT(nnode_t* node, operation_list type, short mark, netlist_t* n
     int port_A_index;
     int port_B_index;
     int index = 0;
-    nnode_t* xor_gate = NULL;
-    nnode_t* logical_or_gate;
-    nnode_t** or_cells;
-    nnode_t** gt_cells;
+    nnode_t *xor_gate = NULL;
+    nnode_t *logical_or_gate;
+    nnode_t **or_cells;
+    nnode_t **gt_cells;
 
     oassert(node->num_output_pins == 1);
     oassert(node->num_input_pins > 0);
@@ -762,8 +772,7 @@ void instantiate_GT(nnode_t* node, operation_list type, short mark, netlist_t* n
         port_B_offset = 0;
         port_A_index = 0;
         port_B_index = 0;
-        error_message(NETLIST, node->loc, "Invalid node type %s in instantiate_GT\n",
-                      node_name_based_on_op(node));
+        error_message(NETLIST, node->loc, "Invalid node type %s in instantiate_GT\n", node_name_based_on_op(node));
     }
 
     if (width_max > 1) {
@@ -774,9 +783,9 @@ void instantiate_GT(nnode_t* node, operation_list type, short mark, netlist_t* n
     /* collects all the GT signals and determines if gt */
     logical_or_gate = make_1port_logic_gate(LOGICAL_OR, width_max, node, mark);
     /* collects a chain if any 1 happens than the GT cells output 0 */
-    or_cells = (nnode_t**)vtr::malloc(sizeof(nnode_t*) * width_max - 1);
+    or_cells = (nnode_t **)vtr::malloc(sizeof(nnode_t *) * width_max - 1);
     /* each cell checks if A > B and sends out a 1 if history has no 1s (3rd input) */
-    gt_cells = (nnode_t**)vtr::malloc(sizeof(nnode_t*) * width_max);
+    gt_cells = (nnode_t **)vtr::malloc(sizeof(nnode_t *) * width_max);
 
     for (i = 0; i < width_max; i++) {
         gt_cells[i] = make_3port_gate(GT, 1, 1, 1, 1, node, mark);
@@ -859,16 +868,17 @@ void instantiate_GT(nnode_t* node, operation_list type, short mark, netlist_t* n
  *	Defines the HW needed for greter than equal with EQ, GT, AND and OR gates to create
  *	the appropriate logic function.
  *-------------------------------------------------------------------------------------------*/
-void instantiate_GE(nnode_t* node, operation_list type, short mark, netlist_t* netlist) {
+void instantiate_GE(nnode_t *node, operation_list type, short mark, netlist_t *netlist)
+{
     int width_a;
     int width_b;
     int width_max;
     int i;
     int port_B_offset;
     int port_A_offset;
-    nnode_t* equal;
-    nnode_t* compare;
-    nnode_t* logical_or_final_gate;
+    nnode_t *equal;
+    nnode_t *compare;
+    nnode_t *logical_or_final_gate;
 
     oassert(node->num_output_pins == 1);
     oassert(node->num_input_pins > 0);
@@ -937,17 +947,18 @@ void instantiate_GE(nnode_t* node, operation_list type, short mark, netlist_t* n
 /**
  * --------------------------------------------------------------------------
  * (function: instantiate_shift)
- * 
- * @brief instantiate shift node based on the type 
+ *
+ * @brief instantiate shift node based on the type
  * of given shift varaible.
- * 
+ *
  * @note first_signal 'SHIFT_OP' second_signal
- * 
+ *
  * @param node pointer to the multipication netlist node
- * 
+ *
  * @return output signal
  * -------------------------------------------------------------------------*/
-void instantiate_shift(nnode_t* node, short mark, netlist_t* netlist) {
+void instantiate_shift(nnode_t *node, short mark, netlist_t *netlist)
+{
     /* validate number and size of input ports */
     oassert(node->num_input_port_sizes == 2);
     oassert(node->input_port_sizes[0] == node->input_port_sizes[1]);
@@ -956,7 +967,7 @@ void instantiate_shift(nnode_t* node, short mark, netlist_t* netlist) {
     int operand_width = node->input_port_sizes[0];
     int shift_width = node->input_port_sizes[1];
     /* shift signal */
-    signal_list_t* shift_signal = init_signal_list();
+    signal_list_t *shift_signal = init_signal_list();
     for (i = 0; i < shift_width; i++) {
         add_pin_to_signal_list(shift_signal, node->input_pins[operand_width + i]);
     }
@@ -981,13 +992,14 @@ void instantiate_shift(nnode_t* node, short mark, netlist_t* netlist) {
  * @brief instantiate shift node that the shift signals
  * is a CONSTANT signals. The constant shift implements
  * the shift operation using manual signal shift with add
- * 
+ *
  * @param node shift node
  * @param type shift type [SL,SR, ASL, and ASR]
  * @param mark traversal number
  * @param netlist pointer to the current netlist
  *-------------------------------------------------------------------------------------------*/
-static void instantiate_constant_shift(nnode_t* node, operation_list type, short mark, netlist_t* netlist) {
+static void instantiate_constant_shift(nnode_t *node, operation_list type, short mark, netlist_t *netlist)
+{
     /* validate number and size of input ports */
     oassert(node->num_input_port_sizes == 2);
     oassert(node->input_port_sizes[0] == node->input_port_sizes[1]);
@@ -998,12 +1010,12 @@ static void instantiate_constant_shift(nnode_t* node, operation_list type, short
     int output_width = node->output_port_sizes[0];
 
     /* operand signal */
-    signal_list_t* operand_signal = init_signal_list();
+    signal_list_t *operand_signal = init_signal_list();
     for (i = 0; i < operand_width; i++) {
         add_pin_to_signal_list(operand_signal, node->input_pins[i]);
     }
     /* shift signal */
-    signal_list_t* shift_signal = init_signal_list();
+    signal_list_t *shift_signal = init_signal_list();
     for (i = 0; i < shift_width; i++) {
         add_pin_to_signal_list(shift_signal, node->input_pins[operand_width + i]);
     }
@@ -1012,74 +1024,73 @@ static void instantiate_constant_shift(nnode_t* node, operation_list type, short
     oassert(is_constant_signal(shift_signal, netlist));
 
     /* shift the operand by shift_size*/
-    signal_list_t* result = init_signal_list();
+    signal_list_t *result = init_signal_list();
     /* record the size of the shift */
     int pad_bit = operand_width - 1;
     /* calculate the value of shift signal */
     long shift_size = constant_signal_value(shift_signal, netlist);
 
     switch (type) {
-        case SL:
-        case ASL: {
-            /* connect ZERO to outputs that don't have inputs connected */
-            for (i = 0; i < shift_size; i++) {
-                if (i < output_width) {
-                    // connect 0 to lower outputs
-                    add_pin_to_signal_list(result, get_zero_pin(netlist));
-                }
+    case SL:
+    case ASL: {
+        /* connect ZERO to outputs that don't have inputs connected */
+        for (i = 0; i < shift_size; i++) {
+            if (i < output_width) {
+                // connect 0 to lower outputs
+                add_pin_to_signal_list(result, get_zero_pin(netlist));
             }
-
-            /* connect inputs to outputs */
-            for (i = 0; i < output_width - shift_size; i++) {
-                if (i < operand_width) {
-                    npin_t* pin = operand_signal->pins[i];
-                    // connect higher output pin to lower input pin
-                    add_pin_to_signal_list(result, pin);
-                    /* detach from the old node */
-                    pin->node->input_pins[pin->pin_node_idx] = NULL;
-                } else {
-                    /* pad with zero pins */
-                    npin_t* extension_pin = get_zero_pin(syn_netlist);
-                    add_pin_to_signal_list(result, extension_pin);
-                }
-            }
-            break;
         }
-        case SR: //fallthrough
-        case ASR: {
-            for (i = shift_size; i < operand_width; i++) {
-                npin_t* pin = operand_signal->pins[i];
+
+        /* connect inputs to outputs */
+        for (i = 0; i < output_width - shift_size; i++) {
+            if (i < operand_width) {
+                npin_t *pin = operand_signal->pins[i];
                 // connect higher output pin to lower input pin
-                if (i - shift_size < output_width) {
-                    add_pin_to_signal_list(result, pin);
-                    pin->node->input_pins[pin->pin_node_idx] = NULL;
-                }
-            }
-
-            /* Extend pad_bit to outputs that don't have inputs connected */
-            for (i = output_width - 1; i >= operand_width - shift_size; i--) {
-                npin_t* extension_pin = NULL;
-                if (node->related_ast_node
-                    && node->attributes->port_a_signed == SIGNED && node->type == ASR) {
-                    /* for signed values padding will be with last pin */
-                    extension_pin = copy_input_npin(operand_signal->pins[pad_bit]);
-                } else {
-                    /* otherwise result will be padded with zero pins */
-                    extension_pin = get_zero_pin(syn_netlist);
-                }
-
+                add_pin_to_signal_list(result, pin);
+                /* detach from the old node */
+                pin->node->input_pins[pin->pin_node_idx] = NULL;
+            } else {
+                /* pad with zero pins */
+                npin_t *extension_pin = get_zero_pin(syn_netlist);
                 add_pin_to_signal_list(result, extension_pin);
             }
-            break;
         }
-        default:
-            error_message(NETLIST, node->loc, "%s", "Operation not supported by Odin\n");
-            break;
+        break;
+    }
+    case SR: // fallthrough
+    case ASR: {
+        for (i = shift_size; i < operand_width; i++) {
+            npin_t *pin = operand_signal->pins[i];
+            // connect higher output pin to lower input pin
+            if (i - shift_size < output_width) {
+                add_pin_to_signal_list(result, pin);
+                pin->node->input_pins[pin->pin_node_idx] = NULL;
+            }
+        }
+
+        /* Extend pad_bit to outputs that don't have inputs connected */
+        for (i = output_width - 1; i >= operand_width - shift_size; i--) {
+            npin_t *extension_pin = NULL;
+            if (node->related_ast_node && node->attributes->port_a_signed == SIGNED && node->type == ASR) {
+                /* for signed values padding will be with last pin */
+                extension_pin = copy_input_npin(operand_signal->pins[pad_bit]);
+            } else {
+                /* otherwise result will be padded with zero pins */
+                extension_pin = get_zero_pin(syn_netlist);
+            }
+
+            add_pin_to_signal_list(result, extension_pin);
+        }
+        break;
+    }
+    default:
+        error_message(NETLIST, node->loc, "%s", "Operation not supported by Odin\n");
+        break;
     }
 
     for (i = 0; i < output_width; i++) {
         /* create a buf node to drive output pins */
-        nnode_t* buf_node = make_1port_gate(BUF_NODE, 1, 1, node, mark);
+        nnode_t *buf_node = make_1port_gate(BUF_NODE, 1, 1, node, mark);
         /* add result as inout pins */
         add_input_pin_to_node(buf_node, result->pins[i], 0);
 
@@ -1110,23 +1121,24 @@ static void instantiate_constant_shift(nnode_t* node, operation_list type, short
  * @brief instantiate shift node that the shift signals
  * is not a CONSTANT signals. The variable shift implements
  * the shift operation using Barrel Shift design
- * 
+ *
  * @param node shift node
  * @param type shift type [SL,SR, ASL, and ASR]
  * @param mark traversal number
  * @param netlist pointer to the current netlist
  *-------------------------------------------------------------------------------------------*/
-static void instantiate_variable_shift(nnode_t* node, operation_list type, short mark, netlist_t* netlist) {
-    /*  
+static void instantiate_variable_shift(nnode_t *node, operation_list type, short mark, netlist_t *netlist)
+{
+    /*
      *   Create mux 2:1
      *   data1 = SHIFT first_input
      *   data2 = SHIFT first_input shifted right or left by pow(2,i)
      *   selector = SHIFT second_input[i]
      */
 
-    nnode_t*** muxes;
-    signal_list_t* input_pins = init_signal_list();
-    signal_list_t* output_pins;
+    nnode_t ***muxes;
+    signal_list_t *input_pins = init_signal_list();
+    signal_list_t *output_pins;
     int input_port_width = 0;
     int output_port_width = 0;
     int pow_2_by_i = 0;
@@ -1138,10 +1150,10 @@ static void instantiate_variable_shift(nnode_t* node, operation_list type, short
     output_pins = input_pins;
     output_port_width = node->output_port_sizes[0];
     input_port_width = node->input_port_sizes[0];
-    muxes = (nnode_t***)vtr::malloc(sizeof(nnode_t**) * (input_port_width));
+    muxes = (nnode_t ***)vtr::malloc(sizeof(nnode_t **) * (input_port_width));
 
     for (int i = 0; i < input_port_width; i++) {
-        muxes[i] = (nnode_t**)vtr::malloc(sizeof(nnode_t*) * (input_port_width));
+        muxes[i] = (nnode_t **)vtr::malloc(sizeof(nnode_t *) * (input_port_width));
         for (int j = 0; j < input_port_width; j++) {
             muxes[i][j] = make_2port_gate(SMUX_2, 1, 2, 1, node, mark);
             /* add selector pin */
@@ -1161,49 +1173,39 @@ static void instantiate_variable_shift(nnode_t* node, operation_list type, short
         input_pins = output_pins;
 
         if (type == SR || type == ASR) {
-            /* 
-             * Logical variable shift right 
-             * or 
+            /*
+             * Logical variable shift right
+             * or
              * arithmetic variable shift right
              */
 
             // shift by pow(2,i) and connect the output of the previous stage mux as the second input to the next stage mux
             for (int j = shift_size; j < input_port_width; j++)
-                add_input_pin_to_node(muxes[i][j - shift_size],
-                                      copy_input_npin(input_pins->pins[j]),
-                                      2);
+                add_input_pin_to_node(muxes[i][j - shift_size], copy_input_npin(input_pins->pins[j]), 2);
             // connect the sign bit of the previous output as extension bits
             int pad_bit = input_port_width - 1;
             for (int j = 0; j < shift_size; j++) {
                 if (node->attributes->port_a_signed == SIGNED && type == ASR) {
-                    add_input_pin_to_node(muxes[i][j + input_port_width - shift_size],
-                                          copy_input_npin(input_pins->pins[pad_bit]),
-                                          2);
+                    add_input_pin_to_node(muxes[i][j + input_port_width - shift_size], copy_input_npin(input_pins->pins[pad_bit]), 2);
                 } else {
-                    add_input_pin_to_node(muxes[i][j + input_port_width - shift_size],
-                                          get_zero_pin(netlist),
-                                          2);
+                    add_input_pin_to_node(muxes[i][j + input_port_width - shift_size], get_zero_pin(netlist), 2);
                 }
             }
 
         } else {
-            /* 
-             * Logical variable shift left 
-             * or 
+            /*
+             * Logical variable shift left
+             * or
              * arithmetic variable shift left
              */
 
             // shift by pow(2,i) and connect the output of the previous stage mux as the second input to the next stage mux
             for (int j = 0; j < input_port_width - shift_size; j++)
-                add_input_pin_to_node(muxes[i][j + shift_size],
-                                      copy_input_npin(input_pins->pins[j]),
-                                      2);
+                add_input_pin_to_node(muxes[i][j + shift_size], copy_input_npin(input_pins->pins[j]), 2);
 
             // connect the zero as extension bits
             for (int j = 0; j < shift_size; j++)
-                add_input_pin_to_node(muxes[i][j],
-                                      get_zero_pin(netlist),
-                                      2);
+                add_input_pin_to_node(muxes[i][j], get_zero_pin(netlist), 2);
         }
 
         for (int j = 0; j < input_port_width; j++) {
@@ -1216,9 +1218,9 @@ static void instantiate_variable_shift(nnode_t* node, operation_list type, short
         // Connect output pin to related input pin
         for (int j = 0; j < input_port_width; j++) {
             if (i != input_port_width - 1) {
-                npin_t* new_pin1 = allocate_npin();
-                npin_t* new_pin2 = allocate_npin();
-                nnet_t* new_net = allocate_nnet();
+                npin_t *new_pin1 = allocate_npin();
+                npin_t *new_pin2 = allocate_npin();
+                nnet_t *new_net = allocate_nnet();
                 new_net->name = make_full_ref_name(NULL, NULL, NULL, muxes[i][j]->name, j);
                 /* hook the output pin into the node */
                 add_output_pin_to_node(muxes[i][j], new_pin1, 0);

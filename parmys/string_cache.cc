@@ -80,30 +80,6 @@ long sc_lookup_string(STRING_CACHE* sc,
     }
 }
 
-bool sc_remove_string(STRING_CACHE* sc,
-                      const char* string) {
-    long i, hash;
-
-    if (sc != NULL) {
-        hash = string_hash(sc, string) % sc->string_hash_size;
-        i = sc->string_hash[hash];
-        while (i >= 0) {
-            if (!strcmp(sc->string[i], string)) {
-                vtr::free(sc->string[i]);
-                if (sc->data[i] != NULL) {
-                    vtr::free(sc->data[i]);
-                    sc->data = NULL;
-                }
-                sc->string[i] = vtr::strdup("REMOVED_NAME_FROM_SC_CACHE");
-                return true;
-            }
-            i = sc->next_string[i];
-        }
-    }
-
-    return false;
-}
-
 long sc_add_string(STRING_CACHE* sc,
                    const char* string) {
     long i;
@@ -138,15 +114,6 @@ long sc_add_string(STRING_CACHE* sc,
     sc->next_string[i] = sc->string_hash[hash];
     sc->string_hash[hash] = i;
     return i;
-}
-
-int sc_valid_id(STRING_CACHE* sc,
-                long string_id) {
-    if (string_id < 0)
-        return 0;
-    if (string_id >= sc->free)
-        return 0;
-    return 1;
 }
 
 void* sc_do_alloc(long a,
@@ -200,18 +167,4 @@ STRING_CACHE* sc_free_string_cache(STRING_CACHE* sc) {
     sc = NULL;
 
     return sc;
-}
-
-void sc_merge_string_cache(STRING_CACHE** source_ref, STRING_CACHE* destination) {
-    STRING_CACHE* source = (*source_ref);
-    for (int source_spot = 0; source_spot < source->free; source_spot++) {
-        long destination_spot = sc_add_string(destination, source->string[source_spot]);
-        destination->data[destination_spot] = source->data[source_spot];
-
-        source->data[source_spot] = NULL;
-    }
-
-    /* now cleanup */
-    sc_free_string_cache(source);
-    (*source_ref) = NULL;
 }

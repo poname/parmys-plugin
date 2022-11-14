@@ -1,20 +1,8 @@
 #include "odin_types.h"
 
-const char *ieee_std_STR[] = {
-  "1364-1995",
-  "1364-2001-noconfig",
-  "1364-2001",
-  "1364-2005",
-};
-
-const char *file_extension_supported_STR[] = {
-  ".v",
-  ".vh",
-};
-
 const char *edge_type_e_STR[] = {
   "UNDEFINED_SENSITIVITY",   "FALLING_EDGE_SENSITIVITY", "RISING_EDGE_SENSITIVITY",
-  "ACTIVE_HIGH_SENSITIVITY", "ACTIVE_LOW_SENSITIVITY",	 "ASYNCHRONOUS_SENSITIVITY",
+  "ACTIVE_HIGH_SENSITIVITY", "ACTIVE_LOW_SENSITIVITY",   "ASYNCHRONOUS_SENSITIVITY",
 };
 
 const char *_ZERO_GND_ZERO[] = {"ZERO_GND_ZERO", "ZGZ"};
@@ -36,16 +24,16 @@ const char *LUTRAM_string = "lutram_ram";
 
 const char *operation_list_STR[][2] = {
   {"NO_OP", "nOP"},
-  {"MULTI_PORT_MUX", "nMUX"}, // port 1 = control, port 2+ = mux options
   {"FF_NODE", "FF"},
   {"BUF_NODE", "BUF"},
+  {"MULTI_PORT_MUX", "nMUX"}, // port 1 = control, port 2+ = mux options
   {"INPUT_NODE", "IN"},
   {"OUTPUT_NODE", "OUT"},
   {"GND_NODE", "GND"},
   {"VCC_NODE", "VCC"},
   {"CLOCK_NODE", "CLK"},
-  {"ADD", "ADD"},	      // +
-  {"MINUS", "MIN"},	      // -
+  {"ADD", "ADD"},             // +
+  {"MINUS", "MIN"},           // -
   {"BITWISE_NOT", "bNOT"},    // ~
   {"BITWISE_AND", "bAND"},    // &
   {"BITWISE_OR", "bOR"},      // |
@@ -60,118 +48,105 @@ const char *operation_list_STR[][2] = {
   {"LOGICAL_NOR", "lNOR"},    // No Symbol
   {"LOGICAL_XNOR", "lXNOR"},  // No symbol
   {"LOGICAL_XOR", "lXOR"},    // No Symbol
-  {"MULTIPLY", "MUL"},	      // *
-  {"DIVIDE", "DIV"},	      // /
-  {"MODULO", "MOD"},	      // %
-  {"POWER", "POW"},	      // **
-  {"LT", "LT"},		      // <
-  {"GT", "GT"},		      // >
+  {"MULTIPLY", "MUL"},        // *
+  {"DIVIDE", "DIV"},          // /
+  {"MODULO", "MOD"},          // %
+  {"POWER", "POW"},           // **
+  {"LT", "LT"},               // <
+  {"GT", "GT"},               // >
   {"LOGICAL_EQUAL", "lEQ"},   // ==
   {"NOT_EQUAL", "lNEQ"},      // !=
-  {"LTE", "LTE"},	      // <=
-  {"GTE", "GTE"},	      // >=
-  {"SR", "SR"},		      // >>
-  {"ASR", "ASR"},	      // >>>
-  {"SL", "SL"},		      // <<
-  {"ASL", "ASL"},	      // <<<
+  {"LTE", "LTE"},             // <=
+  {"GTE", "GTE"},             // >=
+  {"SR", "SR"},               // >>
+  {"ASR", "ASR"},             // >>>
+  {"SL", "SL"},               // <<
+  {"ASL", "ASL"},             // <<<
   {"CASE_EQUAL", "cEQ"},      // ===
   {"CASE_NOT_EQUAL", "cNEQ"}, // !==
   {"ADDER_FUNC", "ADDER"},
   {"CARRY_FUNC", "CARRY"},
   {"MUX_2", "MUX_2"},
-  {"SMUX_2", "SMUX_2"}, // MUX_2 with single bit selector (no need to add not selector as the second pin)
   {"BLIF_FUNCTION", "BLIFf"},
   {"NETLIST_FUNCTION", "NETf"},
+  {"SMUX_2", "SMUX_2"}, // MUX_2 with single bit selector (no need to add not selector as the second pin)
   {"MEMORY", "MEM"},
   {"PAD_NODE", "PAD"},
   {"HARD_IP", "HARD"},
-  {"GENERIC", "GEN"},		     /*added for the unknown node type */
-  {"CLOG2", "CL2"},		     // $clog2
-  {"UNSIGNED", "UNSG"},		     // $unsigned
-  {"SIGNED", "SG"},		     // $signed
-				     // [START] operations to cover yosys subckt
-  {"MULTI_BIT_MUX_2", "nbMUX"},	     // like MUX_2 but with n-bit input/output
+  {"GENERIC", "GEN"},                /*added for the unknown node type */
+  {"CLOG2", "CL2"},                  // $clog2
+  {"UNSIGNED", "UNSG"},              // $unsigned
+  {"SIGNED", "SG"},                  // $signed
+  // [START] operations to cover yosys subckt
+  {"MULTI_BIT_MUX_2", "nbMUX"},      // like MUX_2 but with n-bit input/output
   {"MULTIPORT_nBIT_SMUX", "npbMUX"}, // n-bit input/output in multi port mux
-  {"PMUX", "pMUX"},		     // Multiplexer with many inputs using one-hot select signal
-  {"SDFF", "sDFF"},		     // data, S to reset value and output port
-  {"DFFE", "DFFe"},		     // data, enable to output port
-  {"SDFFE", "sDFFe"},		     // data, synchronous reset value and enable to output port
-  {"SDFFCE", "sDFFce"},		     // data, synchronous reset value and enable to reset value and output port
-  {"DFFSR", "DFFsr"},		     // data, clear and set to output port
-  {"DFFSRE", "DFFsre"},		     // data, clear and set with enable to output port
-  {"DLATCH", "Dlatch"},		     // datato output port based on polarity without clk
-  {"ADLATCH", "aDlatch"},	     // datato output port based on polarity without clk
-  {"SETCLR", "setclr"},		     // set or clear an input pins
-  {"SPRAM", "spRAM"},		     // representing primitive single port ram
-  {"DPRAM", "dpRAM"},		     // representing primitive dual port ram
-  {"YMEM", "yRAM"},		     // representing primitive dual port ram
+  {"PMUX", "pMUX"},                  // Multiplexer with many inputs using one-hot select signal
+  {"SDFF", "sDFF"},                  // data, S to reset value and output port
+  {"DFFE", "DFFe"},                  // data, enable to output port
+  {"SDFFE", "sDFFe"},                // data, synchronous reset value and enable to output port
+  {"SDFFCE", "sDFFce"},              // data, synchronous reset value and enable to reset value and output port
+  {"DFFSR", "DFFsr"},                // data, clear and set to output port
+  {"DFFSRE", "DFFsre"},              // data, clear and set with enable to output port
+  {"DLATCH", "Dlatch"},              // datato output port based on polarity without clk
+  {"ADLATCH", "aDlatch"},            // datato output port based on polarity without clk
+  {"SETCLR", "setclr"},              // set or clear an input pins
+  {"SPRAM", "spRAM"},                // representing primitive single port ram
+  {"DPRAM", "dpRAM"},                // representing primitive dual port ram
+  {"YMEM", "yRAM"},                  // representing primitive dual port ram
   {"YMEM2", "yRAM"},                 // representing primitive dual port ram
-  {"BRAM", "bRAM"},		     // block of memry generated in yosys subcircuit formet blif file
   {"ROM", "ROM"},
+  {"BRAM", "bRAM"},                  // block of memry generated in yosys subcircuit formet blif file
   // [END] operations to cover yosys subckt
-  {"ERROR OOB", "OOB"} // should not reach this
 };
+{"ERROR OOB", "OOB"} // should not reach this
 
 const char *ids_STR[] = {"NO_ID",
-			 /* top level things */
-			 "FILE_ITEMS", "MODULE", "SPECIFY",
-			 /* VARIABLES */
-			 "INPUT", "OUTPUT", "INOUT", "WIRE", "REG", "GENVAR", "PARAMETER", "LOCALPARAM", "INITIAL", "PORT",
-			 /* OTHER MODULE ITEMS */
-			 "MODULE_ITEMS", "VAR_DECLARE", "VAR_DECLARE_LIST", "ASSIGN",
-			 /* OTHER MODULE AND FUNCTION ITEMS */
-			 "FUNCTION",
-			 /* OTHER FUNCTION ITEMS */
-			 "FUNCTION_ITEMS", "TASK", "TASK_ITEMS",
-			 /* primitives */
-			 "GATE", "GATE_INSTANCE", "ONE_GATE_INSTANCE",
-			 /* Module instances */
-			 "MODULE_CONNECT_LIST", "MODULE_CONNECT", "MODULE_PARAMETER_LIST", "MODULE_PARAMETER", "MODULE_NAMED_INSTANCE",
-			 "MODULE_INSTANCE", "MODULE_MASTER_INSTANCE", "ONE_MODULE_INSTANCE",
-			 /* Function instances*/
-			 "FUNCTION_NAMED_INSTANCE", "FUNCTION_INSTANCE",
+                         /* top level things */
+                         "FILE_ITEMS", "MODULE", "SPECIFY",
+                         /* VARIABLES */
+                         "INPUT", "OUTPUT", "INOUT", "WIRE", "REG", "GENVAR", "PARAMETER", "LOCALPARAM", "INITIAL", "PORT",
+                         /* OTHER MODULE ITEMS */
+                         "MODULE_ITEMS", "VAR_DECLARE", "VAR_DECLARE_LIST", "ASSIGN",
+                         /* OTHER MODULE AND FUNCTION ITEMS */
+                         "FUNCTION",
+                         /* OTHER FUNCTION ITEMS */
+                         "FUNCTION_ITEMS", "TASK", "TASK_ITEMS",
+                         /* primitives */
+                         "GATE", "GATE_INSTANCE", "ONE_GATE_INSTANCE",
+                         /* Module instances */
+                         "MODULE_CONNECT_LIST", "MODULE_CONNECT", "MODULE_PARAMETER_LIST", "MODULE_PARAMETER", "MODULE_NAMED_INSTANCE",
+                         "MODULE_INSTANCE", "MODULE_MASTER_INSTANCE", "ONE_MODULE_INSTANCE",
+                         /* Function instances*/
+                         "FUNCTION_NAMED_INSTANCE", "FUNCTION_INSTANCE",
 
-			 "TASK_NAMED_INSTANCE", "TASK_INSTANCE",
-			 /* Specify Items */
-			 "SPECIFY_ITEMS", "SPECIFY_PARAMETER", "SPECIFY_PAL_CONNECTION_STATEMENT", "SPECIFY_PAL_CONNECT_LIST",
-			 /* statements */
-			 "STATEMENT", "BLOCK", "NON_BLOCKING_STATEMENT", "BLOCKING_STATEMENT", "ASSIGNING_LIST", "CASE", "CASE_LIST", "CASE_ITEM",
-			 "CASE_DEFAULT", "ALWAYS", "IF", "FOR", "WHILE",
-			 /* Delay Control */
-			 "DELAY_CONTROL", "POSEDGE", "NEGEDGE",
-			 /* expressions */
-			 "TERNARY_OPERATION", "BINARY_OPERATION", "UNARY_OPERATION",
-			 /* basic primitives */
-			 "ARRAY_REF", "RANGE_REF", "CONCATENATE", "REPLICATE",
-			 /* basic identifiers */
-			 "IDENTIFIERS", "NUMBERS",
-			 /* C functions */
-			 "C_ARG_LIST", "DISPLAY", "FINISH",
-			 /* Hard Blocks */
-			 "HARD_BLOCK", "HARD_BLOCK_NAMED_INSTANCE", "HARD_BLOCK_CONNECT_LIST", "HARD_BLOCK_CONNECT",
-			 // EDDIE: new enum value for ids to replace MEMORY from operation_t
-			 "RAM", "ids_END"};
+                         "TASK_NAMED_INSTANCE", "TASK_INSTANCE",
+                         /* Specify Items */
+                         "SPECIFY_ITEMS", "SPECIFY_PARAMETER", "SPECIFY_PAL_CONNECTION_STATEMENT", "SPECIFY_PAL_CONNECT_LIST",
+                         /* statements */
+                         "STATEMENT", "BLOCK", "NON_BLOCKING_STATEMENT", "BLOCKING_STATEMENT", "ASSIGNING_LIST", "CASE", "CASE_LIST", "CASE_ITEM",
+                         "CASE_DEFAULT", "ALWAYS", "IF", "FOR", "WHILE",
+                         /* Delay Control */
+                         "DELAY_CONTROL", "POSEDGE", "NEGEDGE",
+                         /* expressions */
+                         "TERNARY_OPERATION", "BINARY_OPERATION", "UNARY_OPERATION",
+                         /* basic primitives */
+                         "ARRAY_REF", "RANGE_REF", "CONCATENATE", "REPLICATE",
+                         /* basic identifiers */
+                         "IDENTIFIERS", "NUMBERS",
+                         /* C functions */
+                         "C_ARG_LIST", "DISPLAY", "FINISH",
+                         /* Hard Blocks */
+                         "HARD_BLOCK", "HARD_BLOCK_NAMED_INSTANCE", "HARD_BLOCK_CONNECT_LIST", "HARD_BLOCK_CONNECT",
+                         "RAM", "ids_END"};
 
+// EDDIE: new enum value for ids to replace MEMORY from operation_t
 /* supported input/output file extensions */
 strmap<file_type_e> file_type_strmap({{"ilang", file_type_e::_ILANG},
-				      {"verilog", file_type_e::_VERILOG},
-				      {"verilog_header", file_type_e::_VERILOG_HEADER},
-				      {"blif", file_type_e::_BLIF},
-				      {"eblif", file_type_e::_EBLIF},
-				      {"undef", file_type_e::_UNDEFINED}});
-
-/* available elaborators for Odin-II techmap */
-strmap<elaborator_e> elaborator_strmap({{"odin", elaborator_e::_ODIN}, {"yosys", elaborator_e::_YOSYS}});
-
-/**
- * global hashmap of odin subckt types
- * Technically, Odin-II only outputs the following hard blocks
- * as (.subckt) record in its output BLIF file
- *
- *  FIRST_ELEMENT: model name showing in a blif file
- *  SECOND_ELEMENT: corresponding Odin-II cell type
- */
-strmap<operation_list> odin_subckt_strmap({{"multiply", MULTIPLY}, {"mult_", MULTIPLY}, {"adder", ADD}, {"sub", MINUS}});
+                                      {"verilog", file_type_e::_VERILOG},
+                                      {"verilog_header", file_type_e::_VERILOG_HEADER},
+                                      {"blif", file_type_e::_BLIF},
+                                      {"eblif", file_type_e::_EBLIF},
+                                      {"undef", file_type_e::_UNDEFINED}});
 
 /**
  * global hashmap of yosys subckt types
@@ -192,30 +167,30 @@ strmap<operation_list> odin_subckt_strmap({{"multiply", MULTIPLY}, {"mult_", MUL
  */
 strmap<operation_list> yosys_subckt_strmap({
   {"$_ANDNOT_", SKIP},
-  {"$_AND_", SKIP},	     // (A, B, Y)
-  {"$_AOI3_", SKIP},	     // (A, B, C, Y)
-  {"$_AOI4_", SKIP},	     // (A, B, C, Y)
-  {"$_BUF_", SKIP},	     // (A, Y)
+  {"$_AND_", SKIP},          // (A, B, Y)
+  {"$_AOI3_", SKIP},         // (A, B, C, Y)
+  {"$_AOI4_", SKIP},         // (A, B, C, Y)
+  {"$_BUF_", SKIP},          // (A, Y)
   {"$_DFFE_NN0N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_NN0P_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_NN1N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_NN1P_", SKIP},    // (D, C, R, E, Q)
-  {"$_DFFE_NN_", SKIP},	     // (D, C, E, Q)
+  {"$_DFFE_NN_", SKIP},      // (D, C, E, Q)
   {"$_DFFE_NP0N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_NP0P_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_NP1N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_NP1P_", SKIP},    // (D, C, R, E, Q)
-  {"$_DFFE_NP_", SKIP},	     // (D, C, E, Q)
+  {"$_DFFE_NP_", SKIP},      // (D, C, E, Q)
   {"$_DFFE_PN0N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_PN0P_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_PN1N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_PN1P_", SKIP},    // (D, C, R, E, Q)
-  {"$_DFFE_PN_", SKIP},	     // (D, C, E, Q)
+  {"$_DFFE_PN_", SKIP},      // (D, C, E, Q)
   {"$_DFFE_PP0N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_PP0P_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_PP1N_", SKIP},    // (D, C, R, E, Q)
   {"$_DFFE_PP1P_", SKIP},    // (D, C, R, E, Q)
-  {"$_DFFE_PP_", SKIP},	     // (D, C, E, Q)
+  {"$_DFFE_PP_", SKIP},      // (D, C, E, Q)
   {"$_DFFSRE_NNNN_", SKIP},  // (C, S, R, E, D, Q)
   {"$_DFFSRE_NNNP_", SKIP},  // (C, S, R, E, D, Q)
   {"$_DFFSRE_NNPN_", SKIP},  // (C, S, R, E, D, Q)
@@ -240,16 +215,16 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$_DFFSR_PNP_", SKIP},    // (C, S, R, D, Q)
   {"$_DFFSR_PPN_", SKIP},    // (C, S, R, D, Q)
   {"$_DFFSR_PPP_", SKIP},    // (C, S, R, D, Q)
-  {"$_DFF_NN0_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_NN1_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_NP0_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_NP1_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_N_", SKIP},	     // (D, C, Q)
-  {"$_DFF_PN0_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_PN1_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_PP0_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_PP1_", SKIP},	     // (D, C, R, Q)
-  {"$_DFF_P_", SKIP},	     // (D, C, Q)
+  {"$_DFF_NN0_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_NN1_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_NP0_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_NP1_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_N_", SKIP},        // (D, C, Q)
+  {"$_DFF_PN0_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_PN1_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_PP0_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_PP1_", SKIP},      // (D, C, R, Q)
+  {"$_DFF_P_", SKIP},        // (D, C, Q)
   {"$_DLATCHSR_NNN_", SKIP}, // (E, S, R, D, Q)
   {"$_DLATCHSR_NNP_", SKIP}, // (E, S, R, D, Q)
   {"$_DLATCHSR_NPN_", SKIP}, // (E, S, R, D, Q)
@@ -268,19 +243,19 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$_DLATCH_PP0_", SKIP},   // (E, R, D, Q)
   {"$_DLATCH_PP1_", SKIP},   // (E, R, D, Q)
   {"$_DLATCH_P_", SKIP},     // (E, D, Q)
-  {"$_FF_", SKIP},	     // (D, Q)
-  {"$_MUX16_", SKIP},	     // (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, S, T, U, V, Y)
-  {"$_MUX4_", SKIP},	     // (A, B, C, D, S, T, Y)
-  {"$_MUX8_", SKIP},	     // (A, B, C, D, E, F, G, H, S, T, U, Y)
-  {"$_MUX_", SKIP},	     // (A, B, S, Y)
-  {"$_NAND_", SKIP},	     // (A, B, Y)
-  {"$_NMUX_", SKIP},	     // (A, B, S, Y)
-  {"$_NOR_", SKIP},	     // (A, B, Y)
-  {"$_NOT_", SKIP},	     // (A, Y)
-  {"$_OAI3_", SKIP},	     // (A, B, C, Y)
-  {"$_OAI4_", SKIP},	     // (A, B, C, Y)
-  {"$_ORNOT_", SKIP},	     // (A, B, Y)
-  {"$_OR_", SKIP},	     // (A, B, Y)
+  {"$_FF_", SKIP},           // (D, Q)
+  {"$_MUX16_", SKIP},        // (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, S, T, U, V, Y)
+  {"$_MUX4_", SKIP},         // (A, B, C, D, S, T, Y)
+  {"$_MUX8_", SKIP},         // (A, B, C, D, E, F, G, H, S, T, U, Y)
+  {"$_MUX_", SKIP},          // (A, B, S, Y)
+  {"$_NAND_", SKIP},         // (A, B, Y)
+  {"$_NMUX_", SKIP},         // (A, B, S, Y)
+  {"$_NOR_", SKIP},          // (A, B, Y)
+  {"$_NOT_", SKIP},          // (A, Y)
+  {"$_OAI3_", SKIP},         // (A, B, C, Y)
+  {"$_OAI4_", SKIP},         // (A, B, C, Y)
+  {"$_ORNOT_", SKIP},        // (A, B, Y)
+  {"$_OR_", SKIP},           // (A, B, Y)
   {"$_SDFFCE_NN0N_", SKIP},  // (D, C, R, E, Q)
   {"$_SDFFCE_NN0P_", SKIP},  // (D, C, R, E, Q)
   {"$_SDFFCE_NN1N_", SKIP},  // (D, C, R, E, Q)
@@ -321,103 +296,103 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$_SDFF_PN1_", SKIP},     // (D, C, R, Q)
   {"$_SDFF_PP0_", SKIP},     // (D, C, R, Q)
   {"$_SDFF_PP1_", SKIP},     // (D, C, R, Q)
-  {"$_SR_NN_", SKIP},	     // (S, R, Q)
-  {"$_SR_NP_", SKIP},	     // (S, R, Q)
-  {"$_SR_PN_", SKIP},	     // (S, R, Q)
-  {"$_SR_PP_", SKIP},	     // (S, R, Q)
-  {"$_TBUF_", SKIP},	     // (A, E, Y)
-  {"$_XNOR_", SKIP},	     // (A, B, Y)
-  {"$_XOR_", SKIP},	     // (A, B, Y)
-  {"$add", ADD},	     // (A, B, Y)
-  {"$adff", SKIP},	     // (CLK, ARST, D, Q)
-  {"$adffe", SKIP},	     // (CLK, ARST, EN, D, Q)
-  {"$adlatch", SKIP},	     // (EN, ARST, D, Q)
-  {"$allconst", SKIP},	     // (Y)
-  {"$allseq", SKIP},	     // (Y)
-  {"$alu", SKIP},	     // (A, B, CI, BI, X, Y, CO)
-  {"$and", SKIP},	     // (A, B, Y)
-  {"$anyconst", SKIP},	     // (Y)
-  {"$anyseq", SKIP},	     // (Y)
-  {"$assert", SKIP},	     // (A, EN)
-  {"$assume", SKIP},	     // (A, EN)
-  {"$concat", SKIP},	     // (A, B, Y)
-  {"$cover", SKIP},	     // (A, EN)
-  {"$dff", SKIP},	     // (CLK, D, Q)
-  {"$dffe", SKIP},	     // (CLK, EN, D, Q)
-  {"$dffsr", SKIP},	     // (CLK, SET, CLR, D, Q)
-  {"$dffsre", SKIP},	     // (CLK, SET, CLR, EN, D, Q)
-  {"$div", SKIP},	     // (A, B, Y)
-  {"$divfloor", SKIP},	     // (A, B, Y)
-  {"$dlatch", SKIP},	     // (EN, D, Q)
-  {"$dlatchsr", SKIP},	     // (EN, SET, CLR, D, Q)
-  {"$eq", SKIP},	     // (A, B, Y)
-  {"$equiv", SKIP},	     // (A, B, Y)
-  {"$eqx", SKIP},	     // (A, B, Y)
-  {"$fa", SKIP},	     // (A, B, C, X, Y)
-  {"$fair", SKIP},	     // (A, EN)
-  {"$ff", SKIP},	     // (D, Q)
-  {"$fsm", SKIP},	     // (CLK, ARST, CTRL_IN, CTRL_OUT)
-  {"$ge", SKIP},	     // (A, B, Y)
-  {"$gt", SKIP},	     // (A, B, Y)
-  {"$initstate", SKIP},	     // (Y)
-  {"$lcu", SKIP},	     // (P, G, CI, CO)
-  {"$le", SKIP},	     // (A, B, Y)
-  {"$live", SKIP},	     // (A, EN)
-  {"$logic_and", SKIP},	     // (A, B, Y)
-  {"$logic_not", SKIP},	     // (A, Y)
-  {"$logic_or", SKIP},	     // (A, B, Y)
-  {"$lt", SKIP},	     // (A, B, Y)
-  {"$lut", SKIP},	     // (A, Y)
-  {"$macc", SKIP},	     // (A, B, Y)
+  {"$_SR_NN_", SKIP},        // (S, R, Q)
+  {"$_SR_NP_", SKIP},        // (S, R, Q)
+  {"$_SR_PN_", SKIP},        // (S, R, Q)
+  {"$_SR_PP_", SKIP},        // (S, R, Q)
+  {"$_TBUF_", SKIP},         // (A, E, Y)
+  {"$_XNOR_", SKIP},         // (A, B, Y)
+  {"$_XOR_", SKIP},          // (A, B, Y)
+  {"$add", ADD},             // (A, B, Y)
+  {"$adff", SKIP},           // (CLK, ARST, D, Q)
+  {"$adffe", SKIP},          // (CLK, ARST, EN, D, Q)
+  {"$adlatch", SKIP},        // (EN, ARST, D, Q)
+  {"$allconst", SKIP},       // (Y)
+  {"$allseq", SKIP},         // (Y)
+  {"$alu", SKIP},            // (A, B, CI, BI, X, Y, CO)
+  {"$and", SKIP},            // (A, B, Y)
+  {"$anyconst", SKIP},       // (Y)
+  {"$anyseq", SKIP},         // (Y)
+  {"$assert", SKIP},         // (A, EN)
+  {"$assume", SKIP},         // (A, EN)
+  {"$concat", SKIP},         // (A, B, Y)
+  {"$cover", SKIP},          // (A, EN)
+  {"$dff", SKIP},            // (CLK, D, Q)
+  {"$dffe", SKIP},           // (CLK, EN, D, Q)
+  {"$dffsr", SKIP},          // (CLK, SET, CLR, D, Q)
+  {"$dffsre", SKIP},         // (CLK, SET, CLR, EN, D, Q)
+  {"$div", SKIP},            // (A, B, Y)
+  {"$divfloor", SKIP},       // (A, B, Y)
+  {"$dlatch", SKIP},         // (EN, D, Q)
+  {"$dlatchsr", SKIP},       // (EN, SET, CLR, D, Q)
+  {"$eq", SKIP},             // (A, B, Y)
+  {"$equiv", SKIP},          // (A, B, Y)
+  {"$eqx", SKIP},            // (A, B, Y)
+  {"$fa", SKIP},             // (A, B, C, X, Y)
+  {"$fair", SKIP},           // (A, EN)
+  {"$ff", SKIP},             // (D, Q)
+  {"$fsm", SKIP},            // (CLK, ARST, CTRL_IN, CTRL_OUT)
+  {"$ge", SKIP},             // (A, B, Y)
+  {"$gt", SKIP},             // (A, B, Y)
+  {"$initstate", SKIP},      // (Y)
+  {"$lcu", SKIP},            // (P, G, CI, CO)
+  {"$le", SKIP},             // (A, B, Y)
+  {"$live", SKIP},           // (A, EN)
+  {"$logic_and", SKIP},      // (A, B, Y)
+  {"$logic_not", SKIP},      // (A, Y)
+  {"$logic_or", SKIP},       // (A, B, Y)
+  {"$lt", SKIP},             // (A, B, Y)
+  {"$lut", SKIP},            // (A, Y)
   {"$mem", YMEM},
   {"$mem_v2", YMEM2},
-  {"$meminit", SKIP},	  // (ADDR, DATA)
-  {"$memrd", SKIP},	  // (CLK, EN, ADDR, DATA)
-  {"$memwr", SKIP},	  // (CLK, EN, ADDR, DATA)
-  {"$mod", SKIP},	  // (A, B, Y)
-  {"$modfloor", SKIP},	  // (A, B, Y)
-  {"$mul", MULTIPLY},	  // (A, B, Y)
-  {"$mux", SKIP},	  // (A, B, S, Y)
-  {"$ne", SKIP},	  // (A, B, Y)
-  {"$neg", SKIP},	  // (A, Y)
-  {"$nex", SKIP},	  // (A, B, Y)
-  {"$not", SKIP},	  // (A, Y)
-  {"$or", SKIP},	  // (A, B, Y)
-  {"$pmux", SKIP},	  // (A, B, S, Y)
-  {"$pos", SKIP},	  // (A, Y)
-  {"$pow", SKIP},	  // (A, B, Y)
+  {"$macc", SKIP},           // (A, B, Y)
+  {"$meminit", SKIP},     // (ADDR, DATA)
+  {"$memrd", SKIP},       // (CLK, EN, ADDR, DATA)
+  {"$memwr", SKIP},       // (CLK, EN, ADDR, DATA)
+  {"$mod", SKIP},         // (A, B, Y)
+  {"$modfloor", SKIP},    // (A, B, Y)
+  {"$mul", MULTIPLY},     // (A, B, Y)
+  {"$mux", SKIP},         // (A, B, S, Y)
+  {"$ne", SKIP},          // (A, B, Y)
+  {"$neg", SKIP},         // (A, Y)
+  {"$nex", SKIP},         // (A, B, Y)
+  {"$not", SKIP},         // (A, Y)
+  {"$or", SKIP},          // (A, B, Y)
+  {"$pmux", SKIP},        // (A, B, S, Y)
+  {"$pos", SKIP},         // (A, Y)
+  {"$pow", SKIP},         // (A, B, Y)
   {"$reduce_and", SKIP},  // (A, Y)
   {"$reduce_bool", SKIP}, // (A, Y)
-  {"$reduce_or", SKIP},	  // (A, Y)
+  {"$reduce_or", SKIP},   // (A, Y)
   {"$reduce_xnor", SKIP}, // (A, Y)
   {"$reduce_xor", SKIP},  // (A, Y)
-  {"$sdff", SKIP},	  // (CLK, SRST, D, Q)
-  {"$sdffce", SKIP},	  // (CLK, SRST, EN, D, Q)
-  {"$sdffe", SKIP},	  // (CLK, SRST, EN, D, Q)
-  {"$shift", SKIP},	  // (A, B, Y)
-  {"$shiftx", SKIP},	  // (A, B, Y)
-  {"$shl", SKIP},	  // (A, B, Y)
-  {"$shr", SKIP},	  // (A, B, Y)
-  {"$slice", SKIP},	  // (A, Y)
-  {"$sop", SKIP},	  // (A, Y)
-  {"$specify2", SKIP},	  // (EN, SRC, DST)
-  {"$specify3", SKIP},	  // (EN, SRC, DST, DAT)
-  {"$specrule", SKIP},	  // (EN_SRC, EN_DST, SRC, DST)
-  {"$sr", SKIP},	  // (SET, CLR, Q)
-  {"$sshl", SKIP},	  // (A, B, Y)
-  {"$sshr", SKIP},	  // (A, B, Y)
-  {"$sub", MINUS},	  // (A, B, Y)
-  {"$tribuf", SKIP},	  // (A, EN, Y)
-  {"$xnor", SKIP},	  // (A, B, Y)
-  {"$xor", SKIP},	  // (A, B, Y)
+  {"$sdff", SKIP},        // (CLK, SRST, D, Q)
+  {"$sdffce", SKIP},      // (CLK, SRST, EN, D, Q)
+  {"$sdffe", SKIP},       // (CLK, SRST, EN, D, Q)
+  {"$shift", SKIP},       // (A, B, Y)
+  {"$shiftx", SKIP},      // (A, B, Y)
+  {"$shl", SKIP},         // (A, B, Y)
+  {"$shr", SKIP},         // (A, B, Y)
+  {"$slice", SKIP},       // (A, Y)
+  {"$sop", SKIP},         // (A, Y)
+  {"$specify2", SKIP},    // (EN, SRC, DST)
+  {"$specify3", SKIP},    // (EN, SRC, DST, DAT)
+  {"$specrule", SKIP},    // (EN_SRC, EN_DST, SRC, DST)
+  {"$sr", SKIP},          // (SET, CLR, Q)
+  {"$sshl", SKIP},        // (A, B, Y)
+  {"$sshr", SKIP},        // (A, B, Y)
+  {"$sub", MINUS},        // (A, B, Y)
+  {"$tribuf", SKIP},      // (A, EN, Y)
+  {"$xnor", SKIP},        // (A, B, Y)
 
-  /*********** VTR Primitive modules START ***********/
-  {"LUT_K", SKIP},			     // (in, out)
-  {"DFF", FF_NODE},			     // (clock, D, Q)
+                                             /*********** VTR Primitive modules START ***********/
+  {"$xor", SKIP},         // (A, B, Y)
+  {"LUT_K", SKIP},                           // (in, out)
+  {"DFF", FF_NODE},                          // (clock, D, Q)
   {"fpga_interconnect", operation_list_END}, // (datain, dataout)
-  {"mux", SMUX_2},			     // (select, x, y, z)
-  {"adder", ADD},			     // (a, b, out)
-  {"multiply", MULTIPLY},		     // (a, b, cin, cout, sumout)
-  {"single_port_ram", SPRAM},		     // (clock, addr, data, we, out)
-  {"dual_port_ram", DPRAM}		     // (clock, addr1, addr2, data1, data2, we1, we2, out1, out2)
-});
+  {"mux", SMUX_2},                           // (select, x, y, z)
+  {"adder", ADD},                            // (a, b, out)
+  {"multiply", MULTIPLY},                    // (a, b, cin, cout, sumout)
+                                             {"single_port_ram", SPRAM},                // (clock, addr, data, we, out)
+  {"dual_port_ram", DPRAM}                   // (clock, addr1, addr2, data1, data2, we1, we2, out1, out2)
+                                           });

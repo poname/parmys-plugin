@@ -37,7 +37,6 @@
 using namespace pugiutil;
 
 config_t configuration;
-char empty_string[] = "";
 
 void read_inputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
 void read_outputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
