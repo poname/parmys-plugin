@@ -73,10 +73,10 @@ const char *operation_list_STR[][2] = {
   {"MEMORY", "MEM"},
   {"PAD_NODE", "PAD"},
   {"HARD_IP", "HARD"},
-  {"GENERIC", "GEN"},                /*added for the unknown node type */
-  {"CLOG2", "CL2"},                  // $clog2
-  {"UNSIGNED", "UNSG"},              // $unsigned
-  {"SIGNED", "SG"},                  // $signed
+  {"GENERIC", "GEN"},   /*added for the unknown node type */
+  {"CLOG2", "CL2"},     // $clog2
+  {"UNSIGNED", "UNSG"}, // $unsigned
+  {"SIGNED", "SG"},     // $signed
   // [START] operations to cover yosys subckt
   {"MULTI_BIT_MUX_2", "nbMUX"},      // like MUX_2 but with n-bit input/output
   {"MULTIPORT_nBIT_SMUX", "npbMUX"}, // n-bit input/output in multi port mux
@@ -95,10 +95,10 @@ const char *operation_list_STR[][2] = {
   {"YMEM", "yRAM"},                  // representing primitive dual port ram
   {"YMEM2", "yRAM"},                 // representing primitive dual port ram
   {"ROM", "ROM"},
-  {"BRAM", "bRAM"},                  // block of memry generated in yosys subcircuit formet blif file
-  // [END] operations to cover yosys subckt
+  {"BRAM", "bRAM"}, // block of memry generated in yosys subcircuit formet blif file
+                    // [END] operations to cover yosys subckt
+  {"ERROR OOB", "OOB"} // should not reach this
 };
-{"ERROR OOB", "OOB"} // should not reach this
 
 const char *ids_STR[] = {"NO_ID",
                          /* top level things */
@@ -136,8 +136,7 @@ const char *ids_STR[] = {"NO_ID",
                          /* C functions */
                          "C_ARG_LIST", "DISPLAY", "FINISH",
                          /* Hard Blocks */
-                         "HARD_BLOCK", "HARD_BLOCK_NAMED_INSTANCE", "HARD_BLOCK_CONNECT_LIST", "HARD_BLOCK_CONNECT",
-                         "RAM", "ids_END"};
+                         "HARD_BLOCK", "HARD_BLOCK_NAMED_INSTANCE", "HARD_BLOCK_CONNECT_LIST", "HARD_BLOCK_CONNECT", "RAM", "ids_END"};
 
 // EDDIE: new enum value for ids to replace MEMORY from operation_t
 /* supported input/output file extensions */
@@ -345,7 +344,7 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$lut", SKIP},            // (A, Y)
   {"$mem", YMEM},
   {"$mem_v2", YMEM2},
-  {"$macc", SKIP},           // (A, B, Y)
+  {"$macc", SKIP},        // (A, B, Y)
   {"$meminit", SKIP},     // (ADDR, DATA)
   {"$memrd", SKIP},       // (CLK, EN, ADDR, DATA)
   {"$memwr", SKIP},       // (CLK, EN, ADDR, DATA)
@@ -385,14 +384,14 @@ strmap<operation_list> yosys_subckt_strmap({
   {"$tribuf", SKIP},      // (A, EN, Y)
   {"$xnor", SKIP},        // (A, B, Y)
 
-                                             /*********** VTR Primitive modules START ***********/
-  {"$xor", SKIP},         // (A, B, Y)
+  /*********** VTR Primitive modules START ***********/
+  {"$xor", SKIP},                            // (A, B, Y)
   {"LUT_K", SKIP},                           // (in, out)
   {"DFF", FF_NODE},                          // (clock, D, Q)
   {"fpga_interconnect", operation_list_END}, // (datain, dataout)
   {"mux", SMUX_2},                           // (select, x, y, z)
   {"adder", ADD},                            // (a, b, out)
   {"multiply", MULTIPLY},                    // (a, b, cin, cout, sumout)
-                                             {"single_port_ram", SPRAM},                // (clock, addr, data, we, out)
+  {"single_port_ram", SPRAM},                // (clock, addr, data, we, out)
   {"dual_port_ram", DPRAM}                   // (clock, addr1, addr2, data1, data2, we1, we2, out1, out2)
-                                           });
+});
