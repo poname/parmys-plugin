@@ -18,6 +18,7 @@
  */
 
 #include "kernel/yosys.h"
+#include "kernel/celltypes.h"
 
 #include <regex>
 
@@ -64,6 +65,8 @@ struct Bbox {
     std::string name;
     std::vector<std::string> inputs, outputs;
 };
+
+CellTypes ct;
 
 struct ParMYSPass : public Pass {
 
@@ -358,6 +361,58 @@ struct ParMYSPass : public Pass {
         }
     }
 
+    static operation_list from_yosys_type(Yosys::RTLIL::IdString type) {
+        if (type == ID($add)) {
+            return ADD;
+        }
+        if (type == ID($mem)) {
+            return YMEM;
+        }
+        if (type == ID($mem_v2)) {
+            return YMEM2;
+        }
+        if (type == ID($mul)) {
+            return MULTIPLY;
+        }
+        if (type == ID($sub)) {
+            return MINUS;
+        }
+        if (type == ID(LUT_K)) {
+            return SKIP;
+        }
+        if (type == ID(DFF)) {
+            return FF_NODE;
+        }
+        if (type == ID(fpga_interconnect)) {
+            return operation_list_END;
+        }
+        if (type == ID(mux)) {
+            return SMUX_2;
+        }
+        if (type == ID(adder)) {
+            return ADD;
+        }
+        if (type == ID(multiply)) {
+            return MULTIPLY;
+        }
+        if (type == ID(single_port_ram)) {
+            return SPRAM;
+        }
+        if (type == ID(dual_port_ram)) {
+            return DPRAM;
+        }
+
+        if (Yosys::RTLIL::builtin_ff_cell_types().count(type)) {
+            return SKIP;
+        }
+        
+        if (ct.cell_known(type)) {
+            return SKIP;
+        }
+
+        return NO_OP;
+    }
+
     /**
      *---------------------------------------------------------------------------------------------
      * (function: to_netlist)
@@ -367,6 +422,7 @@ struct ParMYSPass : public Pass {
      */
     static netlist_t *to_netlist(RTLIL::Module *top_module, RTLIL::Design *design)
     {
+        ct.setup();
 
         std::vector<RTLIL::Module *> mod_list;
 
@@ -444,7 +500,8 @@ struct ParMYSPass : public Pass {
 
             new_node->related_ast_node = NULL;
 
-            new_node->type = yosys_subckt_strmap[str(cell->type).c_str()];
+            // new_node->type = yosys_subckt_strmap[str(cell->type).c_str()];
+            new_node->type = from_yosys_type(cell->type);
 
             // check primitive node type is alreday mapped before or not (blackboxed)
             if (new_node->type == SPRAM || new_node->type == DPRAM || new_node->type == ADD || new_node->type == MULTIPLY) {
