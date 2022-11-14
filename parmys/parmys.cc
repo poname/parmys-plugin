@@ -502,6 +502,9 @@ struct ParMYSPass : public Pass {
 
             // new_node->type = yosys_subckt_strmap[str(cell->type).c_str()];
             new_node->type = from_yosys_type(cell->type);
+            if (new_node->type != yosys_subckt_strmap[str(cell->type).c_str()]) {
+                log("::::>>>%s\n", log_id(cell->type));
+            }
 
             // check primitive node type is alreday mapped before or not (blackboxed)
             if (new_node->type == SPRAM || new_node->type == DPRAM || new_node->type == ADD || new_node->type == MULTIPLY) {
