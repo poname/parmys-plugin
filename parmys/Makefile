@@ -42,6 +42,7 @@ SOURCES = parmys.cc \
 		  netlist_visualizer.cc \
 		  Resolve.cc \
 		  Hashtable.cc \
+		  ast_util.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \
 		  ../third_party/libvtrutil/src/vtr_token.cc \
 		  ../third_party/libvtrutil/src/vtr_memory.cc \

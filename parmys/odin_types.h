@@ -25,7 +25,6 @@
  */
 
 #include "string_cache.h"
- #include "hierarchy_util.h"
 #include "scope_util.h"
 #include "odin_error.h"
 #include "read_xml_arch_file.h"

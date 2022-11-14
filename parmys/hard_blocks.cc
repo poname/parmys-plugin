@@ -21,9 +21,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "hard_blocks.h"
 #include "memories.h"
