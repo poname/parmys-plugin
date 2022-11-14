@@ -35,9 +35,9 @@
 #include "kernel/rtlil.h"
 #include "yosys_utils.hpp"
 
-static void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design);
-static void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design);
-static void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design);
+static void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design);
+static void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design);
+static void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design);
 
 Yosys::Wire *wire_net_driver(Yosys::Module *module, nnode_t *node, nnet_t *net, long driver_idx)
 {
@@ -96,7 +96,7 @@ Yosys::Wire *wire_output_pin(Yosys::Module *module, nnode_t *node)
  * @param netlist pointer to the netlist
  * ---------------------------------------------------------------------------------------------
  */
-void update_design(Yosys::Design *design, const netlist_t *netlist)
+void update_design(Yosys::Design *design, netlist_t *netlist)
 {
     // fprintf(out, ".model %s\n", netlist->identifier);
     Yosys::RTLIL::Module *module = nullptr;
@@ -226,7 +226,7 @@ void update_design(Yosys::Design *design, const netlist_t *netlist)
  * @param netlist pointer to the netlist
  * ---------------------------------------------------------------------------------------------
  */
-void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design)
+void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design)
 {
     int i;
 
@@ -261,7 +261,7 @@ void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, 
  * @param fp the output blif file
  * ---------------------------------------------------------------------------------------------
  */
-void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, const netlist_t *netlist, Yosys::Design *design)
+void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design)
 {
     int i, j;
     nnode_t *next_node;
