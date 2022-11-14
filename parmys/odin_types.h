@@ -25,7 +25,6 @@
  */
 
 #include "string_cache.h"
-#include "scope_util.h"
 #include "odin_error.h"
 #include "read_xml_arch_file.h"
 #include "argparse_value.hpp"
@@ -427,7 +426,6 @@ struct stat_t {
 struct typ {
     char* identifier;
     VNumber* vnumber = nullptr;
-    sc_scope* scope;
     struct
     {
         operation_list op;

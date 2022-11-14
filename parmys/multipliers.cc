@@ -652,81 +652,6 @@ void instantiate_hard_multiplier(nnode_t *node, short mark, netlist_t * /*netlis
 	return;
 }
 
-/*----------------------------------------------------------------------------
- * function: add_the_blackbox_for_mults()
- *--------------------------------------------------------------------------*/
-void add_the_blackbox_for_mults(FILE *out)
-{
-	long i;
-	int count;
-	int hard_mult_inputs;
-	t_multiplier *muls;
-	t_model_ports *ports;
-	char buffer[MAX_BUF];
-	char *pa, *pb, *po;
-
-	/* Check to make sure this target architecture has hard multipliers */
-	if (hard_multipliers == NULL)
-		return;
-
-	/* Get the names of the ports for the multiplier */
-	ports = hard_multipliers->inputs;
-	pb = ports->name;
-	ports = ports->next;
-	pa = ports->name;
-	po = hard_multipliers->outputs->name;
-
-	/* find the multiplier devices in the tech library */
-	muls = (t_multiplier *)(hard_multipliers->instances);
-	if (muls == NULL) /* No multipliers instantiated */
-		return;
-
-	/* simplified way of getting the multsize, but fine for quick example */
-	while (muls != NULL) {
-		/* write out this multiplier model */
-		if (configuration.fixed_hard_multiplier != 0)
-			count = fprintf(out, ".model multiply\n");
-		else
-			count = fprintf(out, ".model mult_%d_%d_%d\n", muls->size_a, muls->size_b, muls->size_out);
-
-		/* add the inputs */
-		count = count + fprintf(out, ".inputs");
-		hard_mult_inputs = muls->size_a + muls->size_b;
-		for (i = 0; i < hard_mult_inputs; i++) {
-			if (i < muls->size_a) {
-				count = count + odin_sprintf(buffer, " %s[%ld]", pa, i);
-			} else {
-				count = count + odin_sprintf(buffer, " %s[%ld]", pb, i - muls->size_a);
-			}
-
-			if (count > 78)
-				count = fprintf(out, " \\\n %s", buffer) - 3;
-			else
-				fprintf(out, " %s", buffer);
-		}
-		fprintf(out, "\n");
-
-		/* add the outputs */
-		count = fprintf(out, ".outputs");
-		for (i = 0; i < muls->size_out; i++) {
-			count = count + odin_sprintf(buffer, " %s[%ld]", po, i);
-			if (count > 78) {
-				fprintf(out, " \\\n%s", buffer);
-				count = strlen(buffer);
-			} else
-				fprintf(out, "%s", buffer);
-		}
-		fprintf(out, "\n");
-		fprintf(out, ".blackbox\n");
-		fprintf(out, ".end\n");
-		fprintf(out, "\n");
-
-		muls = muls->next;
-	}
-
-	// free_multipliers();
-}
-
 void add_the_blackbox_for_mults_yosys(Yosys::Design *design)
 {
 	int hard_mult_inputs;
@@ -817,82 +742,6 @@ void add_the_blackbox_for_mults_yosys(Yosys::Design *design)
 	}
 
 	free_multipliers();
-}
-
-/*-------------------------------------------------------------------------
- * (function: define_mult_function)
- *-----------------------------------------------------------------------*/
-void define_mult_function(nnode_t *node, FILE *out)
-{
-	long i, j;
-	int count;
-	char buffer[MAX_BUF];
-
-	count = fprintf(out, "\n.subckt");
-	count--;
-	oassert(node->input_port_sizes[0] > 0);
-	oassert(node->input_port_sizes[1] > 0);
-	oassert(node->output_port_sizes[0] > 0);
-
-	int flip = false;
-
-	if (configuration.fixed_hard_multiplier != 0) {
-		count += fprintf(out, " multiply");
-	} else {
-		if (node->input_port_sizes[0] > node->input_port_sizes[1]) {
-			count += fprintf(out, " mult_%d_%d_%d", node->input_port_sizes[0], node->input_port_sizes[1], node->output_port_sizes[0]);
-
-			flip = false;
-		} else {
-			count += fprintf(out, " mult_%d_%d_%d", node->input_port_sizes[1], node->input_port_sizes[0], node->output_port_sizes[0]);
-
-			flip = true;
-		}
-	}
-
-	for (i = 0; i < node->num_input_pins; i++) {
-		if (i < node->input_port_sizes[flip ? 1 : 0]) {
-			int input_index = flip ? i + node->input_port_sizes[0] : i;
-			nnet_t *net = node->input_pins[input_index]->net;
-			oassert(net->num_driver_pins == 1);
-			npin_t *driver_pin = net->driver_pins[0];
-
-			if (!driver_pin->name)
-				j = odin_sprintf(buffer, " %s[%ld]=%s", hard_multipliers->inputs->next->name, i, driver_pin->node->name);
-			else
-				j = odin_sprintf(buffer, " %s[%ld]=%s", hard_multipliers->inputs->next->name, i, driver_pin->name);
-		} else {
-			int input_index = flip ? i - node->input_port_sizes[1] : i;
-			nnet_t *net = node->input_pins[input_index]->net;
-			oassert(net->num_driver_pins == 1);
-			npin_t *driver_pin = net->driver_pins[0];
-
-			long index = flip ? i - node->input_port_sizes[1] : i - node->input_port_sizes[0];
-
-			if (!driver_pin->name)
-				j = odin_sprintf(buffer, " %s[%ld]=%s", hard_multipliers->inputs->name, index, driver_pin->node->name);
-			else
-				j = odin_sprintf(buffer, " %s[%ld]=%s", hard_multipliers->inputs->name, index, driver_pin->name);
-		}
-
-		if (count + j > 79) {
-			fprintf(out, "\\\n");
-			count = 0;
-		}
-		count += fprintf(out, "%s", buffer);
-	}
-
-	for (i = 0; i < node->num_output_pins; i++) {
-		j = odin_sprintf(buffer, " %s[%ld]=%s", hard_multipliers->outputs->name, i, node->output_pins[i]->name);
-		if (count + j > 79) {
-			fprintf(out, "\\\n");
-			count = 0;
-		}
-		count += fprintf(out, "%s", buffer);
-	}
-
-	fprintf(out, "\n\n");
-	return;
 }
 
 /*-------------------------------------------------------------------------
@@ -1936,27 +1785,6 @@ static nnode_t *perform_const_mult_optimization(mult_port_stat_e mult_port_stat,
 	return (new_node);
 }
 
-bool is_ast_multiplier(ast_node_t *node)
-{
-	bool is_mult;
-	ast_node_t *instance = node->children[0];
-	is_mult = (!strcmp(node->children[0]->types.identifier, "multiply")) && (instance->children[0]->num_children == 3);
-
-	ast_node_t *connect_list = instance->children[0];
-	if (is_mult && connect_list->children[0]->identifier_node) {
-		/* port connections were passed by name; verify port names */
-		for (int i = 0; i < connect_list->num_children && is_mult; i++) {
-			char *id = connect_list->children[i]->children[0]->types.identifier;
-
-			if ((strcmp(id, "a") != 0) && (strcmp(id, "b") != 0) && (strcmp(id, "out") != 0)) {
-				is_mult = false;
-				break;
-			}
-		}
-	}
-
-	return is_mult;
-}
 /**
  * -------------------------------------------------------------------------
  * (function: check_multiplier_port_size)

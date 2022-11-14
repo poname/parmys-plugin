@@ -267,7 +267,7 @@ struct ParMYSPass : public Pass {
      * @brief to map yosys input port to odin input port
      * -------------------------------------------------------------------------------------------
      */
-    void map_input_port(const RTLIL::IdString &mapping, SigSpec in_port, nnode_t *node, char *identifier, pool<SigBit> &cstr_bits_seen)
+    void map_input_port(const RTLIL::IdString &mapping, SigSpec in_port, nnode_t *node, pool<SigBit> &cstr_bits_seen)
     {
 
         int base_pin_idx = node->num_input_pins;
@@ -516,7 +516,7 @@ struct ParMYSPass : public Pass {
             for (auto &conn : cell->connections()) {
 
                 if (cell->input(conn.first) && conn.second.size() > 0) {
-                    map_input_port(conn.first, conn.second, new_node, odin_netlist->identifier, cstr_bits_seen);
+                    map_input_port(conn.first, conn.second, new_node, cstr_bits_seen);
                 }
 
                 if (cell->output(conn.first) && conn.second.size() > 0) {
@@ -905,7 +905,7 @@ struct ParMYSPass : public Pass {
         t_model_ports *input_port = hb->inputs;
         while (input_port) {
             for (int i = 0; i < input_port->size; i++) {
-                std::string w_name = stringf("%s[%ld]", input_port->name, i);
+                std::string w_name = stringf("%s[%d]", input_port->name, i);
                 Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
                 wire->port_input = true;
                 std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);
@@ -922,7 +922,7 @@ struct ParMYSPass : public Pass {
         t_model_ports *output_port = hb->outputs;
         while (output_port) {
             for (int i = 0; i < output_port->size; i++) {
-                std::string w_name = stringf("%s[%ld]", output_port->name, i);
+                std::string w_name = stringf("%s[%d]", output_port->name, i);
                 Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
                 wire->port_output = true;
                 std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);

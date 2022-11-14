@@ -43,12 +43,8 @@ t_model* dual_port_rams = NULL;
 
 t_linked_vptr* sp_memory_list;
 t_linked_vptr* dp_memory_list;
-t_linked_vptr* split_list;
-t_linked_vptr* memory_instances = NULL;
-t_linked_vptr* memory_port_size_list = NULL;
 
 void copy_input_port_to_memory(nnode_t* node, signal_list_t* signals, const char* port_name);
-void copy_output_port_to_memory(nnode_t* node, signal_list_t* signals, const char* port_name);
 void pad_dp_memory_width(nnode_t* node, netlist_t* netlist);
 void pad_sp_memory_width(nnode_t* node, netlist_t* netlist);
 void pad_memory_output_port(nnode_t* node, netlist_t* netlist, t_model* model, const char* port_name);
@@ -121,27 +117,9 @@ long get_dp_ram_width(nnode_t* node) {
     return width;
 }
 
-long get_memory_port_size(const char* name) {
-    t_linked_vptr* mpl;
-
-    mpl = memory_port_size_list;
-    while (mpl != NULL) {
-        if (strcmp(((t_memory_port_sizes*)mpl->data_vptr)->name, name) == 0)
-            return ((t_memory_port_sizes*)mpl->data_vptr)->size;
-        mpl = mpl->next;
-    }
-    return -1;
-}
-
 void copy_input_port_to_memory(nnode_t* node, signal_list_t* signalsvar, const char* port_name) {
     signal_list_t* temp = copy_input_signals(signalsvar);
     add_input_port_to_memory(node, temp, port_name);
-    free_signal_list(temp);
-}
-
-void copy_output_port_to_memory(nnode_t* node, signal_list_t* signalsvar, const char* port_name) {
-    signal_list_t* temp = copy_output_signals(signalsvar);
-    add_output_port_to_memory(node, temp, port_name);
     free_signal_list(temp);
 }
 
@@ -207,38 +185,6 @@ void add_input_port_to_memory(nnode_t* node, signal_list_t* signalsvar, const ch
         }
         pin->mapping = vtr::strdup(port_name);
         add_input_pin_to_node(node, pin, j);
-    }
-}
-
-/*
- * Re-maps the given output signals to the given port name on the given memory node.
- */
-void remap_output_port_to_memory(nnode_t* node, signal_list_t* signalsvar, const char* port_name) {
-    int i;
-    int j = node->num_output_pins;
-
-    // Make sure the port is not already assigned.
-    for (i = 0; i < j; i++) {
-        npin_t* pin = node->output_pins[i];
-        if (!strcmp(pin->mapping, port_name)) {
-            error_message(NETLIST, node->loc,
-                          "Attempted to reassign output port %s to node %s.", port_name, node->name);
-        }
-    }
-
-    // Make room for the new port.
-    allocate_more_output_pins(node, signalsvar->count);
-    add_output_port_information(node, signalsvar->count);
-
-    // Add the new port.
-    for (i = 0; i < signalsvar->count; i++, j++) {
-        npin_t* pin = signalsvar->pins[i];
-        if (strcmp(pin->mapping, port_name)) {
-            if (pin->mapping)
-                vtr::free(pin->mapping);
-            pin->mapping = vtr::strdup(port_name);
-        }
-        remap_pin_to_new_node(pin, node, j);
     }
 }
 
@@ -1353,50 +1299,6 @@ bool is_blif_dp_ram(nnode_t* node) {
     }
 
     return (is_ram);
-}
-
-bool is_ast_sp_ram(ast_node_t* node) {
-    bool is_ram;
-    ast_node_t* instance = node->children[0];
-    is_ram = (!strcmp(node->identifier_node->types.identifier, SINGLE_PORT_RAM_string))
-             && (instance->children[0]->num_children == 5);
-
-    ast_node_t* connect_list = instance->children[0];
-    if (is_ram && connect_list->children[0]->identifier_node) {
-        /* port connections were passed by name; verify port names */
-        for (int i = 0; i < connect_list->num_children && is_ram; i++) {
-            char* id = connect_list->children[i]->identifier_node->types.identifier;
-
-            if ((strcmp(id, "we") != 0) && (strcmp(id, "clk") != 0) && (strcmp(id, "addr") != 0) && (strcmp(id, "data") != 0) && (strcmp(id, "out") != 0)) {
-                is_ram = false;
-                break;
-            }
-        }
-    }
-
-    return is_ram;
-}
-
-bool is_ast_dp_ram(ast_node_t* node) {
-    bool is_ram;
-    ast_node_t* instance = node->children[0];
-    is_ram = (!strcmp(node->identifier_node->types.identifier, DUAL_PORT_RAM_string))
-             && (instance->children[0]->num_children == 9);
-
-    ast_node_t* connect_list = instance->children[0];
-    if (is_ram && connect_list->children[0]->identifier_node) {
-        /* port connections were passed by name; verify port names */
-        for (int i = 0; i < connect_list->num_children && is_ram; i++) {
-            char* id = connect_list->children[i]->identifier_node->types.identifier;
-
-            if ((strcmp(id, "clk") != 0) && (strcmp(id, "we1") != 0) && (strcmp(id, "we2") != 0) && (strcmp(id, "addr1") != 0) && (strcmp(id, "addr2") != 0) && (strcmp(id, "data1") != 0) && (strcmp(id, "data2") != 0) && (strcmp(id, "out1") != 0) && (strcmp(id, "out2") != 0)) {
-                is_ram = false;
-                break;
-            }
-        }
-    }
-
-    return is_ram;
 }
 
 sp_ram_signals* get_sp_ram_signals(nnode_t* node) {

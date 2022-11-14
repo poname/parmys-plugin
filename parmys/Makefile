@@ -38,7 +38,6 @@ SOURCES = parmys.cc \
 		  hard_blocks.cc \
 		  BlockMemories.cc \
 		  memories.cc \
-		  scope_util.cc \
 		  netlist_visualizer.cc \
 		  Resolve.cc \
 		  Hashtable.cc \
