@@ -100,44 +100,6 @@ const char *operation_list_STR[][2] = {
   {"ERROR OOB", "OOB"} // should not reach this
 };
 
-const char *ids_STR[] = {"NO_ID",
-                         /* top level things */
-                         "FILE_ITEMS", "MODULE", "SPECIFY",
-                         /* VARIABLES */
-                         "INPUT", "OUTPUT", "INOUT", "WIRE", "REG", "GENVAR", "PARAMETER", "LOCALPARAM", "INITIAL", "PORT",
-                         /* OTHER MODULE ITEMS */
-                         "MODULE_ITEMS", "VAR_DECLARE", "VAR_DECLARE_LIST", "ASSIGN",
-                         /* OTHER MODULE AND FUNCTION ITEMS */
-                         "FUNCTION",
-                         /* OTHER FUNCTION ITEMS */
-                         "FUNCTION_ITEMS", "TASK", "TASK_ITEMS",
-                         /* primitives */
-                         "GATE", "GATE_INSTANCE", "ONE_GATE_INSTANCE",
-                         /* Module instances */
-                         "MODULE_CONNECT_LIST", "MODULE_CONNECT", "MODULE_PARAMETER_LIST", "MODULE_PARAMETER", "MODULE_NAMED_INSTANCE",
-                         "MODULE_INSTANCE", "MODULE_MASTER_INSTANCE", "ONE_MODULE_INSTANCE",
-                         /* Function instances*/
-                         "FUNCTION_NAMED_INSTANCE", "FUNCTION_INSTANCE",
-
-                         "TASK_NAMED_INSTANCE", "TASK_INSTANCE",
-                         /* Specify Items */
-                         "SPECIFY_ITEMS", "SPECIFY_PARAMETER", "SPECIFY_PAL_CONNECTION_STATEMENT", "SPECIFY_PAL_CONNECT_LIST",
-                         /* statements */
-                         "STATEMENT", "BLOCK", "NON_BLOCKING_STATEMENT", "BLOCKING_STATEMENT", "ASSIGNING_LIST", "CASE", "CASE_LIST", "CASE_ITEM",
-                         "CASE_DEFAULT", "ALWAYS", "IF", "FOR", "WHILE",
-                         /* Delay Control */
-                         "DELAY_CONTROL", "POSEDGE", "NEGEDGE",
-                         /* expressions */
-                         "TERNARY_OPERATION", "BINARY_OPERATION", "UNARY_OPERATION",
-                         /* basic primitives */
-                         "ARRAY_REF", "RANGE_REF", "CONCATENATE", "REPLICATE",
-                         /* basic identifiers */
-                         "IDENTIFIERS", "NUMBERS",
-                         /* C functions */
-                         "C_ARG_LIST", "DISPLAY", "FINISH",
-                         /* Hard Blocks */
-                         "HARD_BLOCK", "HARD_BLOCK_NAMED_INSTANCE", "HARD_BLOCK_CONNECT_LIST", "HARD_BLOCK_CONNECT", "RAM", "ids_END"};
-
 // EDDIE: new enum value for ids to replace MEMORY from operation_t
 /* supported input/output file extensions */
 strmap<file_type_e> file_type_strmap({{"ilang", file_type_e::_ILANG},

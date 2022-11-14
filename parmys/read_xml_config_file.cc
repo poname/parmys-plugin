@@ -103,7 +103,7 @@ void read_inputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_da
 
     child = get_single_child(a_node, "input_type", loc_data, OPTIONAL);
     if (child != NULL) {
-        config->input_file_type = file_type_strmap[child.child_value()];
+        file_type_strmap[child.child_value()];
     }
 
     child = get_first_child(a_node, "input_path_and_name", loc_data, OPTIONAL);
@@ -122,7 +122,7 @@ void read_outputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_d
 
     child = get_single_child(a_node, "output_type", loc_data, OPTIONAL);
     if (child != NULL) {
-        config->output_file_type = file_type_strmap[child.child_value()];
+        file_type_strmap[child.child_value()];
     }
 
     child = get_single_child(a_node, "output_path_and_name", loc_data, OPTIONAL);
@@ -152,7 +152,7 @@ void read_debug_switches(pugi::xml_node a_node, config_t* config, const pugiutil
 
     child = get_single_child(a_node, "output_ast_graphs", loc_data, OPTIONAL);
     if (child != NULL) {
-        config->output_ast_graphs = atoi(child.child_value());
+        atoi(child.child_value());
     }
 
     child = get_single_child(a_node, "output_netlist_graphs", loc_data, OPTIONAL);
@@ -167,7 +167,7 @@ void read_debug_switches(pugi::xml_node a_node, config_t* config, const pugiutil
 
     child = get_single_child(a_node, "print_parse_tokens", loc_data, OPTIONAL);
     if (child != NULL) {
-        config->print_parse_tokens = atoi(child.child_value());
+        atoi(child.child_value());
     }
 
     return;
@@ -183,9 +183,7 @@ void set_default_optimization_settings(config_t* config) {
     config->split_hard_multiplier = 1;
     config->split_memory_width = false;
     config->split_memory_depth = false;
-    config->min_hard_adder = 0;
     config->fixed_hard_adder = 0;
-    config->split_hard_adder = 1;
     config->min_threshold_adder = 0;
     return;
 }
@@ -269,9 +267,8 @@ void read_optimizations(pugi::xml_node a_node, config_t* config, const pugiutil:
     if (child != NULL) {
         prop = get_attribute(child, "size", loc_data, OPTIONAL).as_string(NULL);
         if (prop != NULL) {
-            config->min_hard_adder = atoi(prop);
-        } else /* Default: No minimum hard adder size */
-            config->min_hard_adder = 0;
+            atoi(prop);
+        }
 
         prop = get_attribute(child, "threshold_size", loc_data, OPTIONAL).as_string(NULL);
         if (prop != NULL) {
@@ -281,9 +278,8 @@ void read_optimizations(pugi::xml_node a_node, config_t* config, const pugiutil:
 
         prop = get_attribute(child, "padding", loc_data, OPTIONAL).as_string(NULL);
         if (prop != NULL) {
-            config->add_padding = atoi(prop);
-        } else /* Default: Pad to hbpad pins */
-            config->add_padding = -1;
+            atoi(prop);
+        }
 
         prop = get_attribute(child, "fixed", loc_data, OPTIONAL).as_string(NULL);
         if (prop != NULL) {
@@ -293,9 +289,8 @@ void read_optimizations(pugi::xml_node a_node, config_t* config, const pugiutil:
 
         prop = get_attribute(child, "fracture", loc_data, OPTIONAL).as_string(NULL);
         if (prop != NULL) {
-            config->split_hard_adder = atoi(prop);
-        } else /* Default: use fractured hard adder size */
-            config->split_hard_adder = 1;
+            atoi(prop);
+        }
     }
 
     return;

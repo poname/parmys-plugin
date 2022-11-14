@@ -171,7 +171,6 @@ extern const char* LUTRAM_string;
 
 extern const char* edge_type_e_STR[];
 extern const char* operation_list_STR[][2];
-extern const char* ids_STR[];
 
 template<typename T>
 using strmap = std::unordered_map<std::string, T>;
@@ -190,13 +189,6 @@ enum elaborator_e {
     _ODIN,
     _YOSYS,
     elaborator_e_END
-};
-
-enum ieee_std {
-    ieee_1995,
-    ieee_2001_noconfig,
-    ieee_2001,
-    ieee_2005
 };
 
 enum edge_type_e {
@@ -568,16 +560,7 @@ struct nnode_t {
     int sequential_level;        // the associated sequential network that the node is in
     short sequential_terminator; // if this combinational node is a terminator for the sequential level (connects to flip-flop or Output pin
 
-    netlist_t* internal_netlist; // this is a point of having a subgraph in a node
-
     std::vector<std::vector<BitSpace::bit_value_t>> memory_data;
-    //(int cycle, int num_input_pins, npin_t *inputs, int num_output_pins, npin_t *outputs);
-    void (*simulate_block_cycle)(int, int, int*, int, int*);
-
-    short* associated_function;
-
-    char** bit_map; /*storing the bit map */
-    int bit_map_line_count;
 
     // For simulation
     int in_queue;           // Flag used by the simulator to avoid double queueing.
@@ -597,8 +580,6 @@ struct nnode_t {
     //  value of -1 is reserved for hardened blocks
     long weight = 0;
 
-    //Generic gate output
-    unsigned char generic_output; //describes the output (1 or 0) of generic blocks
 };
 
 struct npin_t {
@@ -643,9 +624,7 @@ struct nnet_t {
     /////////////////////
     // For simulation
     std::shared_ptr<AtomicBuffer> values;
-
-    init_value_e initial_value; // initial net value
-                                //////////////////////
+     //////////////////////
 };
 
 struct signal_list_t {
@@ -654,16 +633,6 @@ struct signal_list_t {
 
     char is_memory;
     char is_adder;
-};
-
-struct char_list_t {
-    char** strings;
-    int num_strings;
-};
-
-struct ast_t {
-    ast_node_t** top_modules;
-    int top_modules_count;
 };
 
 struct netlist_t {

@@ -1088,7 +1088,6 @@ struct ParMYSPass : public Pass {
         }
 
         if (global_args.fflegalize.provenance() == argparse::Provenance::SPECIFIED) {
-            configuration.fflegalize = global_args.fflegalize;
         }
 
         configuration.coarsen = true;

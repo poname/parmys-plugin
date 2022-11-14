@@ -66,15 +66,6 @@ nnode_t* allocate_nnode(loc_t loc) {
     new_node->sequential_level = -1;
     new_node->sequential_terminator = false;
 
-    new_node->internal_netlist = NULL;
-
-    new_node->associated_function = NULL;
-
-    new_node->simulate_block_cycle = NULL;
-
-    new_node->bit_map = NULL;
-    new_node->bit_map_line_count = 0;
-
     new_node->in_queue = false;
 
     new_node->undriven_pins = 0;
@@ -85,8 +76,6 @@ nnode_t* allocate_nnode(loc_t loc) {
     new_node->attributes = init_attribute();
 
     new_node->initial_value = init_value_e::undefined;
-
-    new_node->generic_output = -1;
 
     return new_node;
 }
@@ -294,8 +283,6 @@ nnet_t* allocate_nnet() {
 
     new_net->net_data = NULL;
     new_net->unique_net_data_id = -1;
-
-    new_net->initial_value = init_value_e::undefined;
 
     return new_net;
 }
@@ -1017,7 +1004,7 @@ void depth_traverse_count(nnode_t* node, int* count, uintptr_t traverse_mark_num
         /* ELSE - this is a new node so depth visit it */
         (*count)++;
 
-        /* mark that we have visitied this node now */
+
         node->traverse_visited = traverse_mark_number;
 
         for (i = 0; i < node->num_output_pins; i++) {
@@ -1032,7 +1019,7 @@ void depth_traverse_count(nnode_t* node, int* count, uintptr_t traverse_mark_num
                 if (next_node == NULL)
                     continue;
 
-                /* recursive call point */
+
                 depth_traverse_count(next_node, count, traverse_mark_number);
             }
         }

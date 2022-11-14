@@ -426,44 +426,6 @@ stat_t* get_stats(nnode_t* node, netlist_t* netlist, uintptr_t traverse_mark_num
     return stat;
 }
 
-stat_t* get_stats(nnet_t* net, netlist_t* netlist, uintptr_t traverse_mark_number) {
-    stat_t* stat = (stat_t*)vtr::malloc(sizeof(stat_t));
-    copy(&stat->downward, get_downward_stat(net, netlist, traverse_mark_number));
-    copy(&stat->upward, get_upward_stat(net, netlist, traverse_mark_number));
-    return stat;
-}
-
-stat_t* get_stats(signal_list_t* input_signals, signal_list_t* output_signals, netlist_t* netlist, uintptr_t traverse_mark_number) {
-    stat_t* stat = (stat_t*)vtr::malloc(sizeof(stat_t));
-    // we recompute bellow the input since this is were connection can change
-    get_downward_stat(&stat->downward, input_signals, netlist, traverse_mark_number);
-    // we recompute above the output since this is were connection can change
-    get_upward_stat(&stat->upward, output_signals, netlist, traverse_mark_number);
-    return stat;
-}
-
-stat_t* get_stats(nnode_t** node_list, long long node_count, netlist_t* netlist, uintptr_t traverse_mark_number) {
-    stat_t* stat = (stat_t*)vtr::malloc(sizeof(stat_t));
-    get_downward_stat(&stat->downward, node_list, node_count, netlist, traverse_mark_number);
-    get_upward_stat(&stat->upward, node_list, node_count, netlist, traverse_mark_number);
-    return stat;
-}
-
-stat_t* get_stats(nnet_t** net_list, long long net_count, netlist_t* netlist, uintptr_t traverse_mark_number) {
-    stat_t* stat = (stat_t*)vtr::malloc(sizeof(stat_t));
-    get_downward_stat(&stat->downward, net_list, net_count, netlist, traverse_mark_number);
-    get_upward_stat(&stat->upward, net_list, net_count, netlist, traverse_mark_number);
-    return stat;
-}
-
-stat_t* delete_stat(stat_t* stat) {
-    if (stat) {
-        vtr::free(stat);
-        stat = NULL;
-    }
-    return stat;
-}
-
 static const char _travelsal_id = 0;
 static const uintptr_t travelsal_id = (uintptr_t)&_travelsal_id;
 

@@ -275,7 +275,7 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
         /* POST traverse  map the node since you might delete */
         cell_node(node, traverse_mark_number, module, netlist, design);
 
-        /* mark that we have visitied this node now */
+
         node->traverse_visited = traverse_mark_number;
 
         for (i = 0; i < node->num_output_pins; i++) {
@@ -291,7 +291,7 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
                 if (next_node == NULL)
                     continue;
 
-                /* recursive call point */
+
                 depth_traverse_update_design(next_node, traverse_mark_number, module, netlist, design);
             }
         }

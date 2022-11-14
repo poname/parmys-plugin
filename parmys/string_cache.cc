@@ -1,19 +1,15 @@
 // Not PJs code, but very useful and used everywhere */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "vtr_util.h"
-#include "vtr_memory.h"
 #include "string_cache.h"
+#include "vtr_memory.h"
+#include "vtr_util.h"
+#include <stdio.h>
+#include <string.h>
 
-unsigned long
-string_hash(STRING_CACHE* sc,
-            const char* string);
-void generate_sc_hash(STRING_CACHE* sc);
+unsigned long string_hash(STRING_CACHE *sc, const char *string);
+void generate_sc_hash(STRING_CACHE *sc);
 
-unsigned long
-string_hash(STRING_CACHE* sc,
-            const char* string) {
+unsigned long string_hash(STRING_CACHE *sc, const char *string)
+{
     long a, i, mod, mul;
 
     a = 0;
@@ -24,7 +20,8 @@ string_hash(STRING_CACHE* sc,
     return a;
 }
 
-void generate_sc_hash(STRING_CACHE* sc) {
+void generate_sc_hash(STRING_CACHE *sc)
+{
     long i;
     long hash;
 
@@ -33,8 +30,8 @@ void generate_sc_hash(STRING_CACHE* sc) {
     if (sc->next_string != NULL)
         vtr::free(sc->next_string);
     sc->string_hash_size = sc->size * 2 + 11;
-    sc->string_hash = (long*)sc_do_alloc(sc->string_hash_size, sizeof(long));
-    sc->next_string = (long*)sc_do_alloc(sc->size, sizeof(long));
+    sc->string_hash = (long *)sc_do_alloc(sc->string_hash_size, sizeof(long));
+    sc->next_string = (long *)sc_do_alloc(sc->size, sizeof(long));
     memset(sc->string_hash, 0xff, sc->string_hash_size * sizeof(long));
     memset(sc->next_string, 0xff, sc->size * sizeof(long));
     for (i = 0; i < sc->free; i++) {
@@ -44,26 +41,26 @@ void generate_sc_hash(STRING_CACHE* sc) {
     }
 }
 
-STRING_CACHE*
-sc_new_string_cache(void) {
-    STRING_CACHE* sc;
+STRING_CACHE *sc_new_string_cache(void)
+{
+    STRING_CACHE *sc;
 
-    sc = (STRING_CACHE*)sc_do_alloc(1, sizeof(STRING_CACHE));
+    sc = (STRING_CACHE *)sc_do_alloc(1, sizeof(STRING_CACHE));
     sc->size = 100;
     sc->string_hash_size = 0;
     sc->string_hash = NULL;
     sc->next_string = NULL;
     sc->free = 0;
-    sc->string = (char**)sc_do_alloc(sc->size, sizeof(char*));
-    sc->data = (void**)sc_do_alloc(sc->size, sizeof(void*));
+    sc->string = (char **)sc_do_alloc(sc->size, sizeof(char *));
+    sc->data = (void **)sc_do_alloc(sc->size, sizeof(void *));
     sc->mod = 834535547;
     sc->mul = 247999;
     generate_sc_hash(sc);
     return sc;
 }
 
-long sc_lookup_string(STRING_CACHE* sc,
-                      const char* string) {
+long sc_lookup_string(STRING_CACHE *sc, const char *string)
+{
     long i, hash;
 
     if (sc == NULL) {
@@ -80,11 +77,11 @@ long sc_lookup_string(STRING_CACHE* sc,
     }
 }
 
-long sc_add_string(STRING_CACHE* sc,
-                   const char* string) {
+long sc_add_string(STRING_CACHE *sc, const char *string)
+{
     long i;
     long hash;
-    void* a;
+    void *a;
 
     i = sc_lookup_string(sc, string);
     if (i >= 0)
@@ -92,17 +89,17 @@ long sc_add_string(STRING_CACHE* sc,
     if (sc->free >= sc->size) {
         sc->size = sc->size * 2 + 10;
 
-        a = sc_do_alloc(sc->size, sizeof(char*));
+        a = sc_do_alloc(sc->size, sizeof(char *));
         if (sc->free > 0)
-            memcpy(a, sc->string, sc->free * sizeof(char*));
+            memcpy(a, sc->string, sc->free * sizeof(char *));
         vtr::free(sc->string);
-        sc->string = (char**)a;
+        sc->string = (char **)a;
 
-        a = sc_do_alloc(sc->size, sizeof(void*));
+        a = sc_do_alloc(sc->size, sizeof(void *));
         if (sc->free > 0)
-            memcpy(a, sc->data, sc->free * sizeof(void*));
+            memcpy(a, sc->data, sc->free * sizeof(void *));
         vtr::free(sc->data);
-        sc->data = (void**)a;
+        sc->data = (void **)a;
 
         generate_sc_hash(sc);
     }
@@ -116,9 +113,9 @@ long sc_add_string(STRING_CACHE* sc,
     return i;
 }
 
-void* sc_do_alloc(long a,
-                  long b) {
-    void* r;
+void *sc_do_alloc(long a, long b)
+{
+    void *r;
 
     if (a < 1)
         a = 1;
@@ -126,15 +123,14 @@ void* sc_do_alloc(long a,
         b = 1;
     r = vtr::calloc(a, b);
     while (r == NULL) {
-        fprintf(stderr,
-                "Failed to allocated %ld chunks of %ld bytes (%ld bytes total)\n",
-                a, b, a * b);
+        fprintf(stderr, "Failed to allocated %ld chunks of %ld bytes (%ld bytes total)\n", a, b, a * b);
         r = vtr::calloc(a, b);
     }
     return r;
 }
 
-STRING_CACHE* sc_free_string_cache(STRING_CACHE* sc) {
+STRING_CACHE *sc_free_string_cache(STRING_CACHE *sc)
+{
     if (sc != NULL) {
         if (sc->string != NULL) {
             for (long i = 0; i < sc->free; i++) {

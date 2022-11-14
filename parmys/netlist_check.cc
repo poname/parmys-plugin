@@ -170,7 +170,7 @@ void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* callin
     } else {
         /* ELSE - this is a node so depth visit it */
 
-        /* mark that we have visitied this node now */
+
         node->traverse_visited = traverse_mark_number;
         node->sequential_level = seq_level;
 
@@ -187,7 +187,7 @@ void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* callin
                 if (next_node == NULL)
                     continue;
 
-                /* recursive call point */
+
                 depth_first_traverse_until_next_ff_or_output(next_node, node, traverse_mark_number, seq_level, netlist);
             }
         }
@@ -226,7 +226,7 @@ void depth_first_traverse_check_if_forward_leveled(nnode_t* node, uintptr_t trav
     } else {
         /* ELSE - this is a new node so depth visit it */
 
-        /* mark that we have visitied this node now */
+
         node->traverse_visited = traverse_mark_number;
 
         for (i = 0; i < node->num_output_pins; i++) {
@@ -247,7 +247,7 @@ void depth_first_traverse_check_if_forward_leveled(nnode_t* node, uintptr_t trav
                     oassert(false);
                 }
 
-                /* recursive call point */
+
                 depth_first_traverse_check_if_forward_leveled(next_node, traverse_mark_number);
             }
         }

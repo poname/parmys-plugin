@@ -95,7 +95,7 @@ void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_
         char* temp_string;
         char* temp_string2;
 
-        /* mark that we have visitied this node now */
+
         node->traverse_visited = traverse_mark_number;
 
         temp_string = vtr::strdup(make_simple_name(node->name, "^-+.", '_').c_str());
@@ -155,7 +155,7 @@ void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_
                     vtr::free(temp_string);
                     vtr::free(temp_string2);
 
-                    /* recursive call point */
+
                     depth_first_traverse_visualize(next_node, fp, traverse_mark_number);
                 }
             }

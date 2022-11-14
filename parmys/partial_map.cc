@@ -45,7 +45,6 @@
 #include "vtr_memory.h"
 #include "vtr_util.h"
 
-// void depth_first_traversal_to_partial_map(short marker_value, netlist_t* netlist);
 void depth_first_traverse_partial_map(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist);
 
 void partial_map_node(nnode_t *node, short traverse_number, netlist_t *netlist);
@@ -85,15 +84,12 @@ void partial_map_top(netlist_t *netlist)
  *-------------------------------------------------------------------------------------------*/
 void depth_first_traversal_to_partial_map(short marker_value, netlist_t *netlist)
 {
-    int i;
-
-    /* start with the primary input list */
-    for (i = 0; i < netlist->num_top_input_nodes; i++) {
+    for (int i = 0; i < netlist->num_top_input_nodes; i++) {
         if (netlist->top_input_nodes[i] != NULL) {
             depth_first_traverse_partial_map(netlist->top_input_nodes[i], marker_value, netlist);
         }
     }
-    /* now traverse the ground and vcc pins  */
+
     depth_first_traverse_partial_map(netlist->gnd_node, marker_value, netlist);
     depth_first_traverse_partial_map(netlist->vcc_node, marker_value, netlist);
     depth_first_traverse_partial_map(netlist->pad_node, marker_value, netlist);
@@ -107,9 +103,7 @@ void depth_first_traverse_partial_map(nnode_t *node, uintptr_t traverse_mark_num
     int i, j;
 
     if (node->traverse_visited != traverse_mark_number) {
-        /*this is a new node so depth visit it */
 
-        /* mark that we have visitied this node now */
         node->traverse_visited = traverse_mark_number;
 
         for (i = 0; i < node->num_output_pins; i++) {
@@ -119,7 +113,6 @@ void depth_first_traverse_partial_map(nnode_t *node, uintptr_t traverse_mark_num
                     for (j = 0; j < next_net->num_fanout_pins; j++) {
                         if (next_net->fanout_pins[j]) {
                             if (next_net->fanout_pins[j]->node) {
-                                /* recursive call point */
                                 depth_first_traverse_partial_map(next_net->fanout_pins[j]->node, traverse_mark_number, netlist);
                             }
                         }
@@ -128,7 +121,6 @@ void depth_first_traverse_partial_map(nnode_t *node, uintptr_t traverse_mark_num
             }
         }
 
-        /* POST traverse  map the node since you might delete */
         partial_map_node(node, traverse_mark_number, netlist);
     }
 }

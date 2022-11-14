@@ -28,5 +28,5 @@
 
 #include "odin_types.h"
 
-extern void read_config_file(const char* file_name);
+extern void read_config_file(const char *file_name);
 #endif

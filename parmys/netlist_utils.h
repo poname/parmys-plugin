@@ -3,11 +3,6 @@
 
 #include "odin_types.h"
 
-// PROTOTYPES
-//
-// how to void remap_input_pin_to_new_node(nnode_t *from_node, int from_node_pin, nnode_t *to_node, int to_node_pin)
-//	remap_int_to_new_node(from_node->input_pins[from_node_pin], to_node, to_node_pin);
-//
 nnode_t* allocate_nnode(loc_t loc);
 npin_t* allocate_npin();
 nnet_t* allocate_nnet();

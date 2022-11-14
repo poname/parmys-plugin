@@ -72,7 +72,6 @@ bool is_dp_ram(nnode_t* node);
 bool is_blif_sp_ram(nnode_t* node);
 bool is_blif_dp_ram(nnode_t* node);
 
-void init_memory_distribution();
 void check_memories_and_report_distribution();
 
 long get_sp_ram_depth(nnode_t* node);

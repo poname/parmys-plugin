@@ -45,16 +45,6 @@ char* one_string;
 char* zero_string;
 char* pad_string;
 
-// netlist_t* syn_netlist;
-
-/*---------------------------------------------------------------------------
- * (function: set_default_options)
- *-------------------------------------------------------------------------*/
-void init_global_params()
-{
-    // syn_netlist = allocate_netlist();
-}
-
 /*---------------------------------------------------------------------------
  * (function: set_default_options)
  *-------------------------------------------------------------------------*/
@@ -62,15 +52,9 @@ void set_default_config()
 {
     /* Set up the global configuration. */
     configuration.coarsen = false;
-    configuration.fflegalize = false;
-    configuration.show_yosys_log = false;
     configuration.tcl_file = "";
-    configuration.output_file_type = file_type_e::_BLIF;
-    configuration.elaborator_type = elaborator_e::_ODIN;
-    configuration.output_ast_graphs = 0;
     configuration.output_netlist_graphs = 0;
-    configuration.print_parse_tokens = 0;
-    configuration.output_preproc_source = 0; // TODO: unused
+    // TODO: unused
     configuration.debug_output_path = std::string(DEFAULT_OUTPUT);
     configuration.dsp_verilog = "arch_dsp.v";
     configuration.arch_file = "";

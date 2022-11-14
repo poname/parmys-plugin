@@ -22,35 +22,36 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <string>
+#include "odin_globals.h"
+#include "odin_types.h"
+#include <cstdarg>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <sstream>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <limits.h>
-#include <errno.h>
-#include "odin_types.h"
-#include "odin_globals.h"
-#include <cstdarg>
+#include <string.h>
+#include <string>
 
 #include "odin_util.h"
-#include "vtr_util.h"
-#include "vtr_path.h"
 #include "vtr_memory.h"
+#include "vtr_path.h"
+#include "vtr_util.h"
 #include <regex>
 #include <stdbool.h>
 
 // for mkdir
 #ifdef WIN32
-#    include <direct.h>
-#    define getcwd _getcwd
+#include <direct.h>
+#define getcwd _getcwd
 #else
-#    include <sys/stat.h>
-#    include <unistd.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
-long shift_left_value_with_overflow_check(long input_value, long shift_by, loc_t loc) {
+long shift_left_value_with_overflow_check(long input_value, long shift_by, loc_t loc)
+{
     if (shift_by < 0)
         error_message(NETLIST, loc, "requesting a shift left that is negative [%ld]\n", shift_by);
     else if (shift_by >= (long)ODIN_STD_BITWIDTH - 1)
@@ -63,7 +64,8 @@ long shift_left_value_with_overflow_check(long input_value, long shift_by, loc_t
  * (function: name_based_on_op)
  * 	Get the string version of an operation
  *-------------------------------------------------------------------------------------------*/
-const char* name_based_on_op(operation_list op) {
+const char *name_based_on_op(operation_list op)
+{
     oassert(op < operation_list_END && "OUT OF BOUND operation_list!");
 
     return operation_list_STR[op][ODIN_STRING_TYPE];
@@ -73,9 +75,7 @@ const char* name_based_on_op(operation_list op) {
  * (function: node_name_based_on_op)
  * 	Get the string version of a node
  *-------------------------------------------------------------------------------------------*/
-const char* node_name_based_on_op(nnode_t* node) {
-    return name_based_on_op(node->type);
-}
+const char *node_name_based_on_op(nnode_t *node) { return name_based_on_op(node->type); }
 
 /*---------------------------------------------------------------------------------------------
  * (function: make_full_ref_name)
@@ -83,7 +83,8 @@ const char* node_name_based_on_op(nnode_t* node) {
  * // {previous_string}.instance_name^signal_name
  * // {previous_string}.instance_name^signal_name~bit
  *-------------------------------------------------------------------------------------------*/
-char* make_full_ref_name(const char* previous, const char* /*module_name*/, const char* module_instance_name, const char* signal_name, long bit) {
+char *make_full_ref_name(const char *previous, const char * /*module_name*/, const char *module_instance_name, const char *signal_name, long bit)
+{
     std::stringstream return_string;
     if (previous)
         return_string << previous;
@@ -107,7 +108,8 @@ char* make_full_ref_name(const char* previous, const char* /*module_name*/, cons
 /*---------------------------------------------------------------------------------------------
  *  (function: make_simple_name )
  *-------------------------------------------------------------------------------------------*/
-std::string make_simple_name(char* input, const char* flatten_string, char flatten_char) {
+std::string make_simple_name(char *input, const char *flatten_string, char flatten_char)
+{
     oassert(input);
     oassert(flatten_string);
 
@@ -123,12 +125,14 @@ std::string make_simple_name(char* input, const char* flatten_string, char flatt
 /*-----------------------------------------------------------------------
  * (function: my_malloc_struct )
  *-----------------------------------------------------------------*/
-void* my_malloc_struct(long bytes_to_alloc) {
-    void* allocated = vtr::calloc(1, bytes_to_alloc);
+void *my_malloc_struct(long bytes_to_alloc)
+{
+    void *allocated = vtr::calloc(1, bytes_to_alloc);
     static long int m_id = 0;
 
-    // ways to stop the execution at the point when a specific structure is built...note it needs to be m_id - 1 ... it's unique_id in most data structures
-    //oassert(m_id != 193);
+    // ways to stop the execution at the point when a specific structure is built...note it needs to be m_id - 1 ... it's unique_id in most data
+    // structures
+    // oassert(m_id != 193);
 
     if (allocated == NULL) {
         fprintf(stderr, "MEMORY FAILURE\n");
@@ -136,7 +140,7 @@ void* my_malloc_struct(long bytes_to_alloc) {
     }
 
     /* mark the unique_id */
-    *((long int*)allocated) = m_id++;
+    *((long int *)allocated) = m_id++;
 
     return allocated;
 }
@@ -148,7 +152,8 @@ void* my_malloc_struct(long bytes_to_alloc) {
  *
  * Handles format strings as well.
  */
-char* append_string(const char* string, const char* appendage, ...) {
+char *append_string(const char *string, const char *appendage, ...)
+{
     char buffer[vtr::bufsize];
 
     va_list ap;
@@ -161,15 +166,15 @@ char* append_string(const char* string, const char* appendage, ...) {
     return vtr::strdup(new_string.c_str());
 }
 
-void passed_verify_i_o_availabilty(nnode_t* node, int expected_input_size, int expected_output_size, const char* current_src, int line_src) {
+void passed_verify_i_o_availabilty(nnode_t *node, int expected_input_size, int expected_output_size, const char *current_src, int line_src)
+{
     if (!node)
         error_message(UTIL, unknown_location, "node unavailable @%s::%d", current_src, line_src);
 
     std::stringstream err_message;
     int error = 0;
 
-    if (expected_input_size != -1
-        && node->num_input_pins != expected_input_size) {
+    if (expected_input_size != -1 && node->num_input_pins != expected_input_size) {
         err_message << " input size is " << std::to_string(node->num_input_pins) << " expected 3:\n";
         for (int i = 0; i < node->num_input_pins; i++)
             err_message << "\t" << node->input_pins[0]->name << "\n";
@@ -177,8 +182,7 @@ void passed_verify_i_o_availabilty(nnode_t* node, int expected_input_size, int e
         error = 1;
     }
 
-    if (expected_output_size != -1
-        && node->num_output_pins != expected_output_size) {
+    if (expected_output_size != -1 && node->num_output_pins != expected_output_size) {
         err_message << " output size is " << std::to_string(node->num_output_pins) << " expected 1:\n";
         for (int i = 0; i < node->num_output_pins; i++)
             err_message << "\t" << node->output_pins[0]->name << "\n";
@@ -193,7 +197,8 @@ void passed_verify_i_o_availabilty(nnode_t* node, int expected_input_size, int e
 /*
  * Gets the current time in seconds.
  */
-double wall_time() {
+double wall_time()
+{
     auto time_point = std::chrono::system_clock::now();
     std::chrono::duration<double> time_since_epoch = time_point.time_since_epoch();
 
@@ -205,14 +210,15 @@ double wall_time() {
  * token and a pointer (that needs to be passed through) with the
  * size of the array
  */
-static char** string_to_token_array(char* string, int* size) {
-    char** arr = NULL;
+static char **string_to_token_array(char *string, int *size)
+{
+    char **arr = NULL;
 
-    char* token = strtok(string, " \n\t");
+    char *token = strtok(string, " \n\t");
     int i = 0;
 
     while (token != NULL) {
-        arr = (char**)vtr::realloc(arr, sizeof(char*) * (i + 1));
+        arr = (char **)vtr::realloc(arr, sizeof(char *) * (i + 1));
         arr[i] = token;
         token = strtok(NULL, " \n\t");
         i++;
@@ -226,7 +232,8 @@ static char** string_to_token_array(char* string, int* size) {
  * sprintf has undefined behavior for such and this prevents string overriding if
  * it is also given as an input
  */
-int odin_sprintf(char* s, const char* format, ...) {
+int odin_sprintf(char *s, const char *format, ...)
+{
     va_list args, args_copy;
     va_start(args, format);
     va_copy(args_copy, args);
@@ -243,7 +250,7 @@ int odin_sprintf(char* s, const char* format, ...) {
 
         return temp.length();
 
-    } catch (const std::bad_alloc&) {
+    } catch (const std::bad_alloc &) {
         va_end(args_copy);
         va_end(args);
         return -1;

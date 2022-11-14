@@ -26,21 +26,21 @@ struct STRING_CACHE {
     long free;
     long mod;
     long mul;
-    char** string;
-    void** data;
-    long* string_hash;
-    long* next_string;
+    char **string;
+    void **data;
+    long *string_hash;
+    long *next_string;
 };
 
 /* creates the hash where it is indexed by a string and the void ** holds the data */
-STRING_CACHE* sc_new_string_cache(void);
+STRING_CACHE *sc_new_string_cache(void);
 /* returns an index of the spot where string is */
-long sc_lookup_string(STRING_CACHE* sc, const char* string);
+long sc_lookup_string(STRING_CACHE *sc, const char *string);
 /* adds an element into the cache and returns and id...check with cache_name->data[i] == NULL to see if already added */
-long sc_add_string(STRING_CACHE* sc, const char* string);
-void* sc_do_alloc(long, long);
+long sc_add_string(STRING_CACHE *sc, const char *string);
+void *sc_do_alloc(long, long);
 
 /* free the cache */
-STRING_CACHE* sc_free_string_cache(STRING_CACHE* sc);
+STRING_CACHE *sc_free_string_cache(STRING_CACHE *sc);
 
 #endif
