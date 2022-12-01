@@ -36,7 +36,8 @@
 #include "yosys_utils.hpp"
 
 static void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design);
-static void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design);
+static void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, netlist_t *netlist,
+                                         Yosys::Design *design);
 static void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design);
 
 Yosys::Wire *wire_net_driver(Yosys::Module *module, nnode_t *node, nnet_t *net, long driver_idx)
@@ -275,7 +276,6 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
         /* POST traverse  map the node since you might delete */
         cell_node(node, traverse_mark_number, module, netlist, design);
 
-
         node->traverse_visited = traverse_mark_number;
 
         for (i = 0; i < node->num_output_pins; i++) {
@@ -290,7 +290,6 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
                 next_node = next_net->fanout_pins[j]->node;
                 if (next_node == NULL)
                     continue;
-
 
                 depth_traverse_update_design(next_node, traverse_mark_number, module, netlist, design);
             }
@@ -416,7 +415,7 @@ void define_FF_yosys(nnode_t *node, Yosys::Module *module)
     // char one_init = '1';
     // char x_init = 'x';
     // char *init = (node->initial_value == _0) ? &zero_init : (node->initial_value == _1) ? &one_init : &x_init;
-    Yosys::RTLIL::Cell *cell = nullptr;
+    // Yosys::RTLIL::Cell *cell = nullptr;
 
     if (clock == nullptr && edge != nullptr) {
         // init = edge;
@@ -430,16 +429,16 @@ void define_FF_yosys(nnode_t *node, Yosys::Module *module)
         goto no_latch_clock;
 
     if (!strcmp(edge, "re"))
-        cell = module->addDff(NEW_ID, clock, d, q);
+        module->addDff(NEW_ID, clock, d, q);
     else if (!strcmp(edge, "fe"))
-        cell = module->addDff(NEW_ID, clock, d, q, false);
+        module->addDff(NEW_ID, clock, d, q, false);
     else if (!strcmp(edge, "ah"))
-        cell = module->addDlatch(NEW_ID, clock, d, q);
+        module->addDlatch(NEW_ID, clock, d, q);
     else if (!strcmp(edge, "al"))
-        cell = module->addDlatch(NEW_ID, clock, d, q, false);
+        module->addDlatch(NEW_ID, clock, d, q, false);
     else {
     no_latch_clock:
-        cell = module->addFf(NEW_ID, d, q);
+        module->addFf(NEW_ID, d, q);
     }
 }
 

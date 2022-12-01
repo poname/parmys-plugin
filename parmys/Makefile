@@ -16,6 +16,7 @@
 
 NAME = parmys
 SOURCES = parmys.cc \
+		  parmys_arch.cc \
 		  DesignUpdate.cc \
 		  yosys_utils.cc \
 		  adders.cc \
@@ -87,4 +88,4 @@ CXXFLAGS += -std=$(CXXSTD) -Os
 LDLIBS += -lpthread
 
 install:
-	install -D ../misc/primitives.v $(DATA_DIR)/parmys/vtr_primitives.v
+	install -D ../misc/*.v $(DATA_DIR)/parmys/

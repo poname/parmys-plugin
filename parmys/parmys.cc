@@ -17,8 +17,8 @@
  *
  */
 
-#include "kernel/yosys.h"
 #include "kernel/celltypes.h"
+#include "kernel/yosys.h"
 
 #include <regex>
 
@@ -361,7 +361,8 @@ struct ParMYSPass : public Pass {
         }
     }
 
-    static operation_list from_yosys_type(Yosys::RTLIL::IdString type) {
+    static operation_list from_yosys_type(Yosys::RTLIL::IdString type)
+    {
         if (type == ID($add)) {
             return ADD;
         }
@@ -405,7 +406,7 @@ struct ParMYSPass : public Pass {
         if (Yosys::RTLIL::builtin_ff_cell_types().count(type)) {
             return SKIP;
         }
-        
+
         if (ct.cell_known(type)) {
             return SKIP;
         }
@@ -890,8 +891,8 @@ struct ParMYSPass : public Pass {
 
             // END ################# NETLIST OPTIMIZATION ############################
 
-            if (configuration.output_netlist_graphs)
-                graphVizOutputNetlist(configuration.debug_output_path, "optimized", 2, odin_netlist); /* Path is where we are */
+            // if (configuration.output_netlist_graphs)
+            // graphVizOutputNetlist(configuration.debug_output_path, "optimized", 2, odin_netlist); /* Path is where we are */
         }
 
         optimization_time = wall_time() - optimization_time;
@@ -948,62 +949,62 @@ struct ParMYSPass : public Pass {
     }
 
     static void log_time(double time) { log("%.1fms", time * 1000); }
+    /*
+        static void add_hb_to_design(t_model *hb, Design *design)
+        {
+            Module *module = nullptr;
+            dict<IdString, std::pair<int, bool>> wideports_cache;
 
-    static void add_hb_to_design(t_model *hb, Design *design)
-    {
-        Module *module = nullptr;
-        dict<IdString, std::pair<int, bool>> wideports_cache;
+            module = new Module;
+            // lastcell = nullptr;
+            module->name = RTLIL::escape_id(hb->name);
 
-        module = new Module;
-        // lastcell = nullptr;
-        module->name = RTLIL::escape_id(hb->name);
+            if (design->module(module->name))
+                Yosys::log_error("Duplicate definition of module %s!\n", log_id(module->name));
+            design->add(module);
 
-        if (design->module(module->name))
-            Yosys::log_error("Duplicate definition of module %s!\n", log_id(module->name));
-        design->add(module);
-
-        t_model_ports *input_port = hb->inputs;
-        while (input_port) {
-            for (int i = 0; i < input_port->size; i++) {
-                std::string w_name = stringf("%s[%d]", input_port->name, i);
-                Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
-                wire->port_input = true;
-                std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);
-                if (!wp.first.empty() && wp.second >= 0) {
-                    wideports_cache[wp.first].first = std::max(wideports_cache[wp.first].first, wp.second + 1);
-                    wideports_cache[wp.first].second = true;
+            t_model_ports *input_port = hb->inputs;
+            while (input_port) {
+                for (int i = 0; i < input_port->size; i++) {
+                    std::string w_name = stringf("%s[%d]", input_port->name, i);
+                    Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
+                    wire->port_input = true;
+                    std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);
+                    if (!wp.first.empty() && wp.second >= 0) {
+                        wideports_cache[wp.first].first = std::max(wideports_cache[wp.first].first, wp.second + 1);
+                        wideports_cache[wp.first].second = true;
+                    }
                 }
+
+                // move forward until the end of input ports' list
+                input_port = input_port->next;
             }
 
-            // move forward until the end of input ports' list
-            input_port = input_port->next;
-        }
-
-        t_model_ports *output_port = hb->outputs;
-        while (output_port) {
-            for (int i = 0; i < output_port->size; i++) {
-                std::string w_name = stringf("%s[%d]", output_port->name, i);
-                Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
-                wire->port_output = true;
-                std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);
-                if (!wp.first.empty() && wp.second >= 0) {
-                    wideports_cache[wp.first].first = std::max(wideports_cache[wp.first].first, wp.second + 1);
-                    wideports_cache[wp.first].second = false;
+            t_model_ports *output_port = hb->outputs;
+            while (output_port) {
+                for (int i = 0; i < output_port->size; i++) {
+                    std::string w_name = stringf("%s[%d]", output_port->name, i);
+                    Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
+                    wire->port_output = true;
+                    std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);
+                    if (!wp.first.empty() && wp.second >= 0) {
+                        wideports_cache[wp.first].first = std::max(wideports_cache[wp.first].first, wp.second + 1);
+                        wideports_cache[wp.first].second = false;
+                    }
                 }
+
+                // move forward until the end of output ports' list
+                output_port = output_port->next;
             }
 
-            // move forward until the end of output ports' list
-            output_port = output_port->next;
+            handle_wideports_cache(&wideports_cache, module);
+
+            module->fixup_ports();
+            wideports_cache.clear();
+
+            module->attributes[ID::blackbox] = RTLIL::Const(1);
         }
-
-        handle_wideports_cache(&wideports_cache, module);
-
-        module->fixup_ports();
-        wideports_cache.clear();
-
-        module->attributes[ID::blackbox] = RTLIL::Const(1);
-    }
-
+    */
     ParMYSPass() : Pass("parmys", "ODIN_II partial mapper for Yosys") {}
     void help() override
     {
@@ -1013,21 +1014,24 @@ struct ParMYSPass : public Pass {
         log("\n");
         log("    -c XML_CONFIGURATION_FILE\n");
         log("        Configuration file\n");
-        log("\n");
-        log("    -b BLIF_FILE\n");
-        log("        input BLIF_FILE\n");
+        // log("\n");
+        // log("    -b BLIF_FILE\n");
+        // log("        input BLIF_FILE\n");
         log("\n");
         log("    -top top_module\n");
         log("        set the specified module as design top module\n");
-//        log("\n");
-//        log("    -y YOSYS_OUTPUT_FILE_PATH\n");
-//        log("        Output blif file path after yosys elaboration\n");
-//        log("\n");
-//        log("    -o ODIN_OUTPUT_FILE_PATH\n");
-//        log("        Output blif file path after odin partial mapper\n");
-//        log("\n");
-//        log("    -fflegalize\n");
-//        log("        Make all flip-flops rising edge to be compatible with VPR (may add inverters)\n");
+        log("\n");
+        log("    -nopass\n");
+        log("        No additional passes will be executed.\n");
+        //        log("\n");
+        //        log("    -y YOSYS_OUTPUT_FILE_PATH\n");
+        //        log("        Output blif file path after yosys elaboration\n");
+        //        log("\n");
+        //        log("    -o ODIN_OUTPUT_FILE_PATH\n");
+        //        log("        Output blif file path after odin partial mapper\n");
+        //        log("\n");
+        //        log("    -fflegalize\n");
+        //        log("        Make all flip-flops rising edge to be compatible with VPR (may add inverters)\n");
         log("\n");
         log("    -exact_mults int_value\n");
         log("        To enable mixing hard block and soft logic implementation of adders\n");
@@ -1041,24 +1045,24 @@ struct ParMYSPass : public Pass {
     }
     void execute(std::vector<std::string> args, RTLIL::Design *design) override
     {
-        std::string odin_techlib_dirname;
-#if defined(_WIN32) && !defined(YOSYS_WIN32_UNIX_DIR)
-        odin_techlib_dirname = proc_self_dirname() + "techlibs\\parmys\\";
-#else
-        odin_techlib_dirname = proc_self_dirname() + "techlibs/parmys/";
-#endif
+        //         std::string odin_techlib_dirname;
+        // #if defined(_WIN32) && !defined(YOSYS_WIN32_UNIX_DIR)
+        //         odin_techlib_dirname = proc_self_dirname() + "techlibs\\parmys\\";
+        // #else
+        //         odin_techlib_dirname = proc_self_dirname() + "techlibs/parmys/";
+        // #endif
 
         bool flag_arch_file = false;
         bool flag_config_file = false;
         bool flag_load_vtr_primitives = false;
-        bool flag_read_verilog_input = false;
+        // bool flag_read_verilog_input = false;
         bool flag_no_pass = false;
         std::string arch_file_path;
         std::string config_file_path;
         std::string top_module_name;
-//        std::string yosys_coarsen_blif_output(proc_share_dirname() + "yosys_coarsen.blif");
-//        std::string odin_mapped_blif_output(proc_share_dirname() + "odin_mapped.blif");
-        std::string verilog_input_path;
+        //        std::string yosys_coarsen_blif_output(proc_share_dirname() + "yosys_coarsen.blif");
+        //        std::string odin_mapped_blif_output(proc_share_dirname() + "odin_mapped.blif");
+        // std::string verilog_input_path;
         std::string DEFAULT_OUTPUT(".");
 
         global_args.exact_mults.set(-1, argparse::Provenance::DEFAULT);
@@ -1082,15 +1086,15 @@ struct ParMYSPass : public Pass {
                 top_module_name = args[++argidx];
                 continue;
             }
-//            if (args[argidx] == "-y" && argidx + 1 < args.size()) {
-//                yosys_coarsen_blif_output = args[++argidx];
-//                continue;
-//            }
-//            if (args[argidx] == "-o" && argidx + 1 < args.size()) {
-//                // global_args.output_file @TODO
-//                odin_mapped_blif_output = args[++argidx];
-//                continue;
-//            }
+            //            if (args[argidx] == "-y" && argidx + 1 < args.size()) {
+            //                yosys_coarsen_blif_output = args[++argidx];
+            //                continue;
+            //            }
+            //            if (args[argidx] == "-o" && argidx + 1 < args.size()) {
+            //                // global_args.output_file @TODO
+            //                odin_mapped_blif_output = args[++argidx];
+            //                continue;
+            //            }
             if (args[argidx] == "-vtr_prim") {
                 flag_load_vtr_primitives = true;
                 continue;
@@ -1099,19 +1103,19 @@ struct ParMYSPass : public Pass {
                 flag_no_pass = true;
                 continue;
             }
-            if (args[argidx] == "-v" && argidx + 1 < args.size()) {
-                flag_read_verilog_input = true;
-                verilog_input_path = args[++argidx];
-                continue;
-            }
-            if (args[argidx] == "-b" && argidx + 1 < args.size()) {
-                global_args.blif_file.set(args[++argidx], argparse::Provenance::SPECIFIED);
-                continue;
-            }
-//            if (args[argidx] == "-fflegalize") {
-//                global_args.fflegalize.set(true, argparse::Provenance::SPECIFIED);
-//                continue;
-//            }
+            // if (args[argidx] == "-v" && argidx + 1 < args.size()) {
+            //     flag_read_verilog_input = true;
+            //     verilog_input_path = args[++argidx];
+            //     continue;
+            // }
+            // if (args[argidx] == "-b" && argidx + 1 < args.size()) {
+            //     global_args.blif_file.set(args[++argidx], argparse::Provenance::SPECIFIED);
+            //     continue;
+            // }
+            //            if (args[argidx] == "-fflegalize") {
+            //                global_args.fflegalize.set(true, argparse::Provenance::SPECIFIED);
+            //                continue;
+            //            }
             if (args[argidx] == "-exact_mults" && argidx + 1 < args.size()) {
                 global_args.exact_mults.set(atoi(args[++argidx].c_str()), argparse::Provenance::SPECIFIED);
                 continue;
@@ -1147,8 +1151,8 @@ struct ParMYSPass : public Pass {
             mixer->_opts[MULTIPLY] = new MultsOpt(global_args.exact_mults);
         }
 
-//        if (global_args.fflegalize.provenance() == argparse::Provenance::SPECIFIED) {
-//        }
+        //        if (global_args.fflegalize.provenance() == argparse::Provenance::SPECIFIED) {
+        //        }
 
         configuration.coarsen = true;
 
@@ -1176,29 +1180,29 @@ struct ParMYSPass : public Pass {
         }
         log("Using Lut input width of: %d\n", physical_lut_size);
 
-        if (flag_load_vtr_primitives) {
-            Pass::call(design, "read_verilog -nomem2reg +/parmys/vtr_primitives.v");
-            Pass::call(design, "setattr -mod -set keep_hierarchy 1 single_port_ram");
-            Pass::call(design, "setattr -mod -set keep_hierarchy 1 dual_port_ram");
-        }
+        // if (flag_load_vtr_primitives) {
+        //     Pass::call(design, "read_verilog -nomem2reg +/parmys/vtr_primitives.v");
+        //     Pass::call(design, "setattr -mod -set keep_hierarchy 1 single_port_ram");
+        //     Pass::call(design, "setattr -mod -set keep_hierarchy 1 dual_port_ram");
+        // }
 
         // ********* start dsp handling ************
 
-        t_model *hb = Arch.models;
-        while (hb) {
-            if (strcmp(hb->name, SINGLE_PORT_RAM_string) && strcmp(hb->name, DUAL_PORT_RAM_string) && strcmp(hb->name, "multiply") &&
-                strcmp(hb->name, "adder"))
-                add_hb_to_design(hb, design);
+        // t_model *hb = Arch.models;
+        // while (hb) {
+        //     if (strcmp(hb->name, SINGLE_PORT_RAM_string) && strcmp(hb->name, DUAL_PORT_RAM_string) && strcmp(hb->name, "multiply") &&
+        //         strcmp(hb->name, "adder"))
+        //         add_hb_to_design(hb, design);
 
-            hb = hb->next;
-        }
+        //     hb = hb->next;
+        // }
 
         // ********* finished dsp handling ************
 
-        if (flag_read_verilog_input) {
-            log("Verilog: %s\n", vtr::basename(verilog_input_path).c_str());
-            Pass::call(design, "read_verilog -sv -nolatches " + verilog_input_path);
-        }
+        // if (flag_read_verilog_input) {
+        //     log("Verilog: %s\n", vtr::basename(verilog_input_path).c_str());
+        //     Pass::call(design, "read_verilog -sv -nolatches " + verilog_input_path);
+        // }
 
         // if(!flag_no_pass) {
         // Pass::call(design, "proc;");
@@ -1228,19 +1232,28 @@ struct ParMYSPass : public Pass {
 
         if (!flag_no_pass) {
 
+            if (flag_load_vtr_primitives) {
+                Pass::call(design, "read_verilog -nomem2reg +/parmys/vtr_primitives.v");
+                Pass::call(design, "setattr -mod -set keep_hierarchy 1 single_port_ram");
+                Pass::call(design, "setattr -mod -set keep_hierarchy 1 dual_port_ram");
+            }
+
+            Pass::call(design, "parmys_arch -a " + arch_file_path);
+
             if (top_module_name.empty()) {
                 Pass::call(design, "hierarchy -check -auto-top -purge_lib");
             } else {
                 Pass::call(design, "hierarchy -check -top " + top_module_name);
             }
 
-            Pass::call(design, "proc;");
-            Pass::call(design, "fsm;");
-            Pass::call(design, "memory_collect; memory_dff;");
+            Pass::call(design, "proc -norom");
+            Pass::call(design, "fsm");
+            Pass::call(design, "opt");
+            Pass::call(design, "wreduce");
+            Pass::call(design, "memory -norom");
             Pass::call(design, "check");
             Pass::call(design, "flatten");
-            Pass::call(design, "opt_clean");
-            Pass::call(design, "stat");
+            Pass::call(design, "opt -full");
         }
 
         if (design->top_module()->processes.size() != 0)
@@ -1342,16 +1355,16 @@ struct ParMYSPass : public Pass {
         log("\n--------------------------------------------------------------------\n");
 
         log("Updating the Design\n");
-        Pass::call(design, "stat");
+        // Pass::call(design, "stat");
         Pass::call(design, "delete");
 
         for (auto module : design->modules()) {
             design->remove(module);
         }
 
-        Pass::call(design, "stat");
-        Pass::call(design, "ls");
-        Pass::call(design, "stat");
+        // Pass::call(design, "stat");
+        // Pass::call(design, "ls");
+        // Pass::call(design, "stat");
 
         for (auto bb_module : black_boxes) {
             Yosys::Module *module = nullptr;
@@ -1400,7 +1413,14 @@ struct ParMYSPass : public Pass {
         // report(transformed);
         //  compute_statistics(transformed, true);
 
-        Pass::call(design, "hierarchy -check -auto-top -purge_lib");
+        if (!flag_no_pass) {
+            // Pass::call(design, "hierarchy -check -auto-top -purge_lib");
+            if (top_module_name.empty()) {
+                Pass::call(design, "hierarchy -check -auto-top -purge_lib");
+            } else {
+                Pass::call(design, "hierarchy -check -top " + top_module_name);
+            }
+        }
 
         log("--------------------------------------------------------------------\n");
 
