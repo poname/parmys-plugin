@@ -76,4 +76,4 @@ install:
 	install -D ../misc/adffe2dff.v $(DATA_DIR)/parmys/adffe2dff.v
 	install -D ../misc/aldff2dff.v $(DATA_DIR)/parmys/aldff2dff.v
 	install -D ../misc/aldffe2dff.v $(DATA_DIR)/parmys/aldffe2dff.v
-	install -D ../misc/primitives.v $(DATA_DIR)/parmys/vtr_primitives
+	install -D ../misc/primitives.v $(DATA_DIR)/parmys/vtr_primitives.v
