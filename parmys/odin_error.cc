@@ -1,10 +1,10 @@
 #include "odin_error.h"
 #include "config_t.h"
 
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 std::vector<std::pair<std::string, int>> include_file_names;
 
@@ -12,26 +12,19 @@ std::vector<std::pair<std::string, int>> include_file_names;
 int delayed_errors = 0;
 const loc_t unknown_location = {-1, -1, -1};
 
-const char* odin_error_STR[] = {
-    "",
-    "UTIL",
-    "PARSE_ARGS",
-    "PARSE_TO_AST",
-    "AST",
-    "BLIF ELABORATION",
-    "NETLIST",
-    "PARSE_BLIF",
-    "OUTPUT_BLIF",
-    "SIMULATION",
+const char *odin_error_STR[] = {
+  "", "UTIL", "PARSE_ARGS", "PARSE_TO_AST", "AST", "BLIF ELABORATION", "NETLIST", "PARSE_BLIF", "OUTPUT_BLIF", "SIMULATION",
 };
 
-void verify_delayed_error(odin_error error_type) {
+void verify_delayed_error(odin_error error_type)
+{
     if (delayed_errors) {
         error_message(error_type, unknown_location, "Parser found (%d) errors in your syntax, exiting", delayed_errors);
     }
 }
 
-static std::string make_marker_from_str(std::string str, int column) {
+static std::string make_marker_from_str(std::string str, int column)
+{
     std::string to_return = "";
 
     for (size_t i = 0; i < str.size(); i++) {
@@ -50,9 +43,10 @@ static std::string make_marker_from_str(std::string str, int column) {
     return to_return;
 }
 
-static std::string get_culprit_line(int line_number, const char* file) {
+static std::string get_culprit_line(int line_number, const char *file)
+{
     std::string culprit_line = "";
-    FILE* input_file = fopen(file, "r");
+    FILE *input_file = fopen(file, "r");
     if (input_file) {
         bool copy_characters = false;
         int current_line_number = 0;
@@ -77,7 +71,8 @@ static std::string get_culprit_line(int line_number, const char* file) {
     return culprit_line;
 }
 
-static void print_culprit_line_with_context(int column, int target_line, const char* file, int num_context_lines) {
+static void print_culprit_line_with_context(int column, int target_line, const char *file, int num_context_lines)
+{
     for (int curr_line = std::max(target_line - num_context_lines, 0); curr_line <= target_line + num_context_lines; curr_line++) {
         std::string culprit_line = get_culprit_line(curr_line, file);
         int num_printed;
@@ -88,13 +83,15 @@ static void print_culprit_line_with_context(int column, int target_line, const c
     }
 }
 
-void _log_message(odin_error error_type, loc_t loc, bool fatal_error, const char* function_file_name, int function_line, const char* function_name, const char* message, ...) {
+void _log_message(odin_error error_type, loc_t loc, bool fatal_error, const char *function_file_name, int function_line, const char *function_name,
+                  const char *message, ...)
+{
     fflush(stdout);
 
     va_list ap;
 
     if (loc.file >= 0 && (size_t)loc.file < include_file_names.size()) {
-        char* path = realpath(include_file_names[loc.file].first.c_str(), NULL);
+        char *path = realpath(include_file_names[loc.file].first.c_str(), NULL);
         fprintf(stderr, "\n%s:%d:%d: ", path, loc.line + 1, loc.col);
         free(path);
     }
@@ -117,8 +114,7 @@ void _log_message(odin_error error_type, loc_t loc, bool fatal_error, const char
             fprintf(stderr, "\n");
     }
 
-    if (loc.file >= 0 && (size_t)loc.file < include_file_names.size()
-        && loc.line >= 0) {
+    if (loc.file >= 0 && (size_t)loc.file < include_file_names.size() && loc.line >= 0) {
         print_culprit_line_with_context(loc.col, loc.line, include_file_names[loc.file].first.c_str(), 2);
     }
 
@@ -128,7 +124,8 @@ void _log_message(odin_error error_type, loc_t loc, bool fatal_error, const char
     }
 }
 
-void _verbose_abort(const char* condition_str, const char* odin_file_name, int odin_line_number, const char* odin_function_name) {
+void _verbose_abort(const char *condition_str, const char *odin_file_name, int odin_line_number, const char *odin_function_name)
+{
     fflush(stdout);
     fprintf(stderr, "\n%s:%d: %s: ", odin_file_name, odin_line_number, odin_function_name);
     if (condition_str) {

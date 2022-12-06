@@ -20,28 +20,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "odin_types.h"
-#include "odin_globals.h"
 #include "read_xml_config_file.h"
-#include "read_xml_util.h"
+#include "odin_globals.h"
+#include "odin_types.h"
 #include "pugixml.hpp"
-#include "vtr_util.h"
+#include "read_xml_util.h"
 #include "vtr_memory.h"
+#include "vtr_util.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 using namespace pugiutil;
 
 config_t configuration;
 
-void read_inputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
-void read_outputs(pugi::xml_node a_node, const pugiutil::loc_data& loc_data);
-void read_debug_switches(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
-void read_optimizations(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data);
-void set_default_optimization_settings(config_t* config);
+void read_inputs(pugi::xml_node a_node, config_t *config, const pugiutil::loc_data &loc_data);
+void read_outputs(pugi::xml_node a_node, const pugiutil::loc_data &loc_data);
+void read_debug_switches(pugi::xml_node a_node, config_t *config, const pugiutil::loc_data &loc_data);
+void read_optimizations(pugi::xml_node a_node, config_t *config, const pugiutil::loc_data &loc_data);
+void set_default_optimization_settings(config_t *config);
 
-extern HardSoftLogicMixer* mixer;
+extern HardSoftLogicMixer *mixer;
 
 /*-------------------------------------------------------------------------
  * (function: read_config_file)
@@ -49,7 +49,8 @@ extern HardSoftLogicMixer* mixer;
  *
  * See config_t in types.h to see the data structures used in this read.
  *-----------------------------------------------------------------------*/
-void read_config_file(const char* file_name) {
+void read_config_file(const char *file_name)
+{
     pugi::xml_node config, next;
 
     /* Parse the xml file */
@@ -82,7 +83,7 @@ void read_config_file(const char* file_name) {
         next = get_single_child(config, "debug_outputs", loc_data);
         read_debug_switches(next, &configuration, loc_data);
 
-    } catch (XmlError& e) {
+    } catch (XmlError &e) {
         printf("error: could not parse xml configuration file '%s': %s\n", file_name, e.what());
         return;
     }
@@ -94,7 +95,8 @@ void read_config_file(const char* file_name) {
 /*-------------------------------------------------------------------------
  * (function: read_verilog_files)
  *-----------------------------------------------------------------------*/
-void read_inputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data) {
+void read_inputs(pugi::xml_node a_node, config_t *config, const pugiutil::loc_data &loc_data)
+{
     pugi::xml_node child;
     pugi::xml_node junk;
 
@@ -114,7 +116,8 @@ void read_inputs(pugi::xml_node a_node, config_t* config, const pugiutil::loc_da
 /*--------------------------------------------------------------------------
  * (function: read_outputs)
  *------------------------------------------------------------------------*/
-void read_outputs(pugi::xml_node a_node, const pugiutil::loc_data& loc_data) {
+void read_outputs(pugi::xml_node a_node, const pugiutil::loc_data &loc_data)
+{
     pugi::xml_node child;
 
     child = get_single_child(a_node, "output_type", loc_data, OPTIONAL);
@@ -144,7 +147,8 @@ void read_outputs(pugi::xml_node a_node, const pugiutil::loc_data& loc_data) {
 /*--------------------------------------------------------------------------
  * (function: read_workload_generation)
  *------------------------------------------------------------------------*/
-void read_debug_switches(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data) {
+void read_debug_switches(pugi::xml_node a_node, config_t *config, const pugiutil::loc_data &loc_data)
+{
     pugi::xml_node child;
 
     child = get_single_child(a_node, "output_ast_graphs", loc_data, OPTIONAL);
@@ -173,7 +177,8 @@ void read_debug_switches(pugi::xml_node a_node, config_t* config, const pugiutil
 /*--------------------------------------------------------------------------
  * (function: set_default_optimization_settings)
  *------------------------------------------------------------------------*/
-void set_default_optimization_settings(config_t* config) {
+void set_default_optimization_settings(config_t *config)
+{
     config->min_hard_multiplier = 0;
     config->fixed_hard_multiplier = 0;
     config->mult_padding = -1; /* unconn */
@@ -188,8 +193,9 @@ void set_default_optimization_settings(config_t* config) {
 /*--------------------------------------------------------------------------
  * (function: read_optimizations)
  *------------------------------------------------------------------------*/
-void read_optimizations(pugi::xml_node a_node, config_t* config, const pugiutil::loc_data& loc_data) {
-    const char* prop;
+void read_optimizations(pugi::xml_node a_node, config_t *config, const pugiutil::loc_data &loc_data)
+{
+    const char *prop;
     pugi::xml_node child;
 
     child = get_single_child(a_node, "multiply", loc_data, OPTIONAL);

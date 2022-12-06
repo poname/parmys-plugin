@@ -23,14 +23,14 @@
 #ifndef MULTIPLIERS_H
 #define MULTIPLIERS_H
 
-#include "read_xml_arch_file.h"
 #include "odin_types.h"
+#include "read_xml_arch_file.h"
 
 struct t_multiplier {
     int size_a;
     int size_b;
     int size_out;
-    struct t_multiplier* next;
+    struct t_multiplier *next;
 };
 
 enum class mult_port_stat_e {
@@ -41,23 +41,23 @@ enum class mult_port_stat_e {
     mult_port_stat_END
 };
 
-extern t_model* hard_multipliers;
-extern vtr::t_linked_vptr* mult_list;
+extern t_model *hard_multipliers;
+extern vtr::t_linked_vptr *mult_list;
 extern int min_mult;
 
 extern void init_mult_distribution();
 extern void report_mult_distribution();
-extern void declare_hard_multiplier(nnode_t* node);
-extern void instantiate_hard_multiplier(nnode_t* node, short mark, netlist_t* netlist);
-extern void instantiate_simple_soft_multiplier(nnode_t* node, short mark, netlist_t* netlist);
-extern void connect_constant_mult_outputs(nnode_t* node, signal_list_t* output_signal_list);
+extern void declare_hard_multiplier(nnode_t *node);
+extern void instantiate_hard_multiplier(nnode_t *node, short mark, netlist_t *netlist);
+extern void instantiate_simple_soft_multiplier(nnode_t *node, short mark, netlist_t *netlist);
+extern void connect_constant_mult_outputs(nnode_t *node, signal_list_t *output_signal_list);
 extern void find_hard_multipliers();
-extern void add_the_blackbox_for_mults_yosys(Yosys::Design* design);
-extern void define_mult_function_yosys(nnode_t* node, Yosys::Module* module, Yosys::Design* design);
-extern void split_multiplier(nnode_t* node, int a0, int b0, int a1, int b1, netlist_t* netlist);
-extern void iterate_multipliers(netlist_t* netlist);
-extern bool check_constant_multipication(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-extern void check_multiplier_port_size(nnode_t* node);
+extern void add_the_blackbox_for_mults_yosys(Yosys::Design *design);
+extern void define_mult_function_yosys(nnode_t *node, Yosys::Module *module, Yosys::Design *design);
+extern void split_multiplier(nnode_t *node, int a0, int b0, int a1, int b1, netlist_t *netlist);
+extern void iterate_multipliers(netlist_t *netlist);
+extern bool check_constant_multipication(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist);
+extern void check_multiplier_port_size(nnode_t *node);
 extern void clean_multipliers();
 extern void free_multipliers();
 

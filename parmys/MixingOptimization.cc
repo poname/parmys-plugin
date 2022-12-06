@@ -26,62 +26,71 @@
 #include <stdint.h> // INT_MAX
 #include <vector>
 
-#include "netlist_statistic.h"    // mixing_optimization_stats
-#include "multipliers.h"          // instantiate_simple_soft_multiplier
-#include "odin_error.h"           // error_message
-#include "adders.h"               // hard_adders
 #include "HardSoftLogicMixer.hpp" // HardSoftLogicMixer
+#include "adders.h"               // hard_adders
+#include "multipliers.h"          // instantiate_simple_soft_multiplier
+#include "netlist_statistic.h"    // mixing_optimization_stats
+#include "odin_error.h"           // error_message
 
-void MixingOpt::scale_counts() {
+void MixingOpt::scale_counts()
+{
     if (this->_blocks_count < 0 || this->_blocks_count == INT_MAX || this->_ratio < 0.0 || this->_ratio > 1.0) {
-        error_message(NETLIST, unknown_location, "The parameters for optimization kind:%i are configured incorrectly : count %i, ratio %f\n", this->_kind, this->_blocks_count, this->_ratio);
+        error_message(NETLIST, unknown_location, "The parameters for optimization kind:%i are configured incorrectly : count %i, ratio %f\n",
+                      this->_kind, this->_blocks_count, this->_ratio);
         exit(0);
     }
     this->_blocks_count = this->_blocks_count * this->_ratio;
 }
 
-void MixingOpt::assign_weights(netlist_t* /*netlist*/, std::vector<nnode_t*> /*nodes*/) {
+void MixingOpt::assign_weights(netlist_t * /*netlist*/, std::vector<nnode_t *> /*nodes*/)
+{
     // compute weights for all noted nodes
-    error_message(NETLIST, unknown_location, "Assign_weights mixing optimization was called for optimization without specification provided, for kind  %i\n", this->_kind);
+    error_message(NETLIST, unknown_location,
+                  "Assign_weights mixing optimization was called for optimization without specification provided, for kind  %i\n", this->_kind);
     exit(0);
 }
 
-void MixingOpt::perform(netlist_t*, std::vector<nnode_t*>&) {
-    error_message(NETLIST, unknown_location, "Performing mixing optimization was called for optimization without method provided, for kind  %i\n", this->_kind);
+void MixingOpt::perform(netlist_t *, std::vector<nnode_t *> &)
+{
+    error_message(NETLIST, unknown_location, "Performing mixing optimization was called for optimization without method provided, for kind  %i\n",
+                  this->_kind);
     exit(0);
 }
 
-MultsOpt::MultsOpt(int _exact)
-    : MixingOpt(1.0, MULTIPLY) {
+MultsOpt::MultsOpt(int _exact) : MixingOpt(1.0, MULTIPLY)
+{
     this->_blocks_count = _exact;
     this->_enabled = true;
 }
 
-MultsOpt::MultsOpt(float ratio)
-    : MixingOpt(ratio, MULTIPLY) {
+MultsOpt::MultsOpt(float ratio) : MixingOpt(ratio, MULTIPLY)
+{
     if (ratio < 0.0 || ratio > 1.0) {
         error_message(NETLIST, unknown_location, "Miltipliers mixing optimization is started with wrong ratio %f\n", ratio);
         exit(0);
     }
 
-    //Explicitly set all hard block multipliers to max
+    // Explicitly set all hard block multipliers to max
     this->_blocks_count = INT_MAX;
     this->_enabled = true;
 }
 
-bool MultsOpt::hardenable(nnode_t* node) {
+bool MultsOpt::hardenable(nnode_t *node)
+{
     int mult_size = std::max<int>(node->input_port_sizes[0], node->input_port_sizes[1]);
     return (hard_multipliers && (mult_size > min_mult));
 }
 
-void MultsOpt::assign_weights(netlist_t* netlist, std::vector<nnode_t*> nodes) {
+void MultsOpt::assign_weights(netlist_t *netlist, std::vector<nnode_t *> nodes)
+{
     // compute weights for all noted nodes
     for (size_t i = 0; i < nodes.size(); i++) {
         mixing_optimization_stats(nodes[i], netlist);
     }
 }
 
-void MultsOpt::perform(netlist_t* netlist, std::vector<nnode_t*>& weighted_nodes) {
+void MultsOpt::perform(netlist_t *netlist, std::vector<nnode_t *> &weighted_nodes)
+{
     size_t nodes_count = weighted_nodes.size();
 
     // per optimization, instantiate hard logic
@@ -119,11 +128,10 @@ void MultsOpt::perform(netlist_t* netlist, std::vector<nnode_t*>& weighted_nodes
     }
 }
 
-void MixingOpt::set_blocks_needed(int new_count) {
-    this->_blocks_count = new_count;
-}
+void MixingOpt::set_blocks_needed(int new_count) { this->_blocks_count = new_count; }
 
-void MultsOpt::set_blocks_needed(int new_count) {
+void MultsOpt::set_blocks_needed(int new_count)
+{
     // with development for fixed_layout, this value will change
     int availableHardBlocks = INT_MAX;
     int hardBlocksNeeded = new_count;
@@ -139,17 +147,22 @@ void MultsOpt::set_blocks_needed(int new_count) {
 
     this->scale_counts();
 }
-void MixingOpt::instantiate_soft_logic(netlist_t* /*netlist*/, std::vector<nnode_t*> /* nodes*/) {
-    error_message(NETLIST, unknown_location, "Performing instantiate_soft_logic was called for optimization without method provided, for kind  %i\n", this->_kind);
+void MixingOpt::instantiate_soft_logic(netlist_t * /*netlist*/, std::vector<nnode_t *> /* nodes*/)
+{
+    error_message(NETLIST, unknown_location, "Performing instantiate_soft_logic was called for optimization without method provided, for kind  %i\n",
+                  this->_kind);
     exit(0);
 }
 
-void MixingOpt::partial_map_node(nnode_t* /*node*/, short /*traverse_value*/, netlist_t*, /*netlist*/ HardSoftLogicMixer* /*mixer*/) {
-    error_message(NETLIST, unknown_location, "Performing partial_map_node was called for optimization without method provided, for kind  %i\n", this->_kind);
+void MixingOpt::partial_map_node(nnode_t * /*node*/, short /*traverse_value*/, netlist_t *, /*netlist*/ HardSoftLogicMixer * /*mixer*/)
+{
+    error_message(NETLIST, unknown_location, "Performing partial_map_node was called for optimization without method provided, for kind  %i\n",
+                  this->_kind);
     exit(0);
 }
 
-void MultsOpt::partial_map_node(nnode_t* node, short traverse_value, netlist_t* netlist, HardSoftLogicMixer* mixer) {
+void MultsOpt::partial_map_node(nnode_t *node, short traverse_value, netlist_t *netlist, HardSoftLogicMixer *mixer)
+{
     if (mixer->enabled(node) && mixer->hardenable(node)) {
         mixer->note_candidate_node(node);
     } else if (mixer->hardenable(node)) {
@@ -160,7 +173,8 @@ void MultsOpt::partial_map_node(nnode_t* node, short traverse_value, netlist_t* 
     this->cached_traverse_value = traverse_value;
 }
 
-void MultsOpt::instantiate_soft_logic(netlist_t* netlist, std::vector<nnode_t*> nodes) {
+void MultsOpt::instantiate_soft_logic(netlist_t *netlist, std::vector<nnode_t *> nodes)
+{
     unsigned int size = nodes.size();
     for (unsigned int j = 0; j < size; j++) {
         instantiate_simple_soft_multiplier(nodes[j], this->cached_traverse_value, netlist);

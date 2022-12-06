@@ -22,30 +22,31 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "odin_types.h"
-#include "odin_globals.h"
 #include "netlist_utils.h"
 #include "netlist_visualizer.h"
+#include "odin_globals.h"
+#include "odin_types.h"
 #include "odin_util.h"
-#include "vtr_util.h"
 #include "vtr_memory.h"
+#include "vtr_util.h"
 
-void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_mark_number);
-void depth_first_traversal_graph_display(FILE* out, uintptr_t marker_value, netlist_t* netllist);
+void depth_first_traverse_visualize(nnode_t *node, FILE *fp, uintptr_t traverse_mark_number);
+void depth_first_traversal_graph_display(FILE *out, uintptr_t marker_value, netlist_t *netllist);
 
-void forward_traversal_net_graph_display(FILE* out, uintptr_t marker_value, nnode_t* node);
-void backward_traversal_net_graph_display(FILE* out, uintptr_t marker_value, nnode_t* node);
+void forward_traversal_net_graph_display(FILE *out, uintptr_t marker_value, nnode_t *node);
+void backward_traversal_net_graph_display(FILE *out, uintptr_t marker_value, nnode_t *node);
 
 /*---------------------------------------------------------------------------------------------
  * (function: graphVizOutputNetlist)
  *-------------------------------------------------------------------------------------------*/
-void graphVizOutputNetlist(std::string path, const char* name, uintptr_t marker_value, netlist_t* netlist) {
+void graphVizOutputNetlist(std::string path, const char *name, uintptr_t marker_value, netlist_t *netlist)
+{
     char path_and_file[4096];
-    FILE* fp;
+    FILE *fp;
 
     /* open the file */
     odin_sprintf(path_and_file, "%s/%s.dot", path.c_str(), name);
@@ -64,7 +65,8 @@ void graphVizOutputNetlist(std::string path, const char* name, uintptr_t marker_
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traversal_start()
  *-------------------------------------------------------------------------------------------*/
-void depth_first_traversal_graph_display(FILE* out, uintptr_t marker_value, netlist_t* netlist) {
+void depth_first_traversal_graph_display(FILE *out, uintptr_t marker_value, netlist_t *netlist)
+{
     int i;
 
     /* start with the primary input list */
@@ -83,18 +85,18 @@ void depth_first_traversal_graph_display(FILE* out, uintptr_t marker_value, netl
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traverse)
  *-------------------------------------------------------------------------------------------*/
-void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_mark_number) {
+void depth_first_traverse_visualize(nnode_t *node, FILE *fp, uintptr_t traverse_mark_number)
+{
     int i, j;
-    nnode_t* next_node;
-    nnet_t* next_net;
+    nnode_t *next_node;
+    nnet_t *next_net;
 
     if (node->traverse_visited == traverse_mark_number) {
         return;
     } else {
         /* ELSE - this is a new node so depth visit it */
-        char* temp_string;
-        char* temp_string2;
-
+        char *temp_string;
+        char *temp_string2;
 
         node->traverse_visited = traverse_mark_number;
 
@@ -118,7 +120,7 @@ void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_
 
             next_net = node->output_pins[i]->net;
             for (j = 0; j < next_net->num_fanout_pins; j++) {
-                npin_t* pin = next_net->fanout_pins[j];
+                npin_t *pin = next_net->fanout_pins[j];
                 if (pin) {
                     next_node = pin->node;
                     if (next_node == NULL)
@@ -134,15 +136,15 @@ void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_
                     /* renaming for output nodes */
                     if (node->type == OUTPUT_NODE) {
                         /* renaming for output nodes */
-                        char* temp_string_old = temp_string;
-                        temp_string = (char*)vtr::malloc(sizeof(char) * strlen(temp_string) + 1 + 2);
+                        char *temp_string_old = temp_string;
+                        temp_string = (char *)vtr::malloc(sizeof(char) * strlen(temp_string) + 1 + 2);
                         odin_sprintf(temp_string, "%s_O", temp_string_old);
                         free(temp_string_old);
                     }
                     if (next_node->type == OUTPUT_NODE) {
                         /* renaming for output nodes */
-                        char* temp_string2_old = temp_string2;
-                        temp_string2 = (char*)vtr::malloc(sizeof(char) * strlen(temp_string2) + 1 + 2);
+                        char *temp_string2_old = temp_string2;
+                        temp_string2 = (char *)vtr::malloc(sizeof(char) * strlen(temp_string2) + 1 + 2);
                         odin_sprintf(temp_string2, "%s_O", temp_string2_old);
                         free(temp_string2_old);
                     }
@@ -155,7 +157,6 @@ void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_
                     vtr::free(temp_string);
                     vtr::free(temp_string2);
 
-
                     depth_first_traverse_visualize(next_node, fp, traverse_mark_number);
                 }
             }
@@ -166,9 +167,10 @@ void depth_first_traverse_visualize(nnode_t* node, FILE* fp, uintptr_t traverse_
 /*---------------------------------------------------------------------------------------------
  * (function: graphVizOutputCobinationalNet)
  *-------------------------------------------------------------------------------------------*/
-void graphVizOutputCombinationalNet(std::string path, const char* name, uintptr_t marker_value, nnode_t* current_node) {
+void graphVizOutputCombinationalNet(std::string path, const char *name, uintptr_t marker_value, nnode_t *current_node)
+{
     char path_and_file[4096];
-    FILE* fp;
+    FILE *fp;
 
     /* open the file */
     odin_sprintf(path_and_file, "%s/%s.dot", path.c_str(), name);
@@ -189,19 +191,20 @@ void graphVizOutputCombinationalNet(std::string path, const char* name, uintptr_
  * (function: forward_traversal_net_graph_display()
  *	TODO check if stack of node is freed
  *-------------------------------------------------------------------------------------------*/
-void forward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnode_t* node) {
+void forward_traversal_net_graph_display(FILE *fp, uintptr_t marker_value, nnode_t *node)
+{
     int j, k;
-    nnode_t** stack_of_nodes;
+    nnode_t **stack_of_nodes;
     int index_in_stack = 0;
     int num_stack_of_nodes = 1;
-    char* temp_string;
-    char* temp_string2;
+    char *temp_string;
+    char *temp_string2;
 
-    stack_of_nodes = (nnode_t**)vtr::malloc(sizeof(nnode_t*) * 1);
+    stack_of_nodes = (nnode_t **)vtr::malloc(sizeof(nnode_t *) * 1);
     stack_of_nodes[0] = node;
 
     while (index_in_stack != num_stack_of_nodes) {
-        nnode_t* current_node = stack_of_nodes[index_in_stack];
+        nnode_t *current_node = stack_of_nodes[index_in_stack];
 
         /* mark it */
         current_node->traverse_visited = marker_value;
@@ -229,11 +232,12 @@ void forward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnode
                 continue;
 
             for (k = 0; k < current_node->output_pins[j]->net->num_fanout_pins; k++) {
-                if ((current_node->output_pins[j] == NULL) || (current_node->output_pins[j]->net == NULL) || (current_node->output_pins[j]->net->fanout_pins[k] == NULL))
+                if ((current_node->output_pins[j] == NULL) || (current_node->output_pins[j]->net == NULL) ||
+                    (current_node->output_pins[j]->net->fanout_pins[k] == NULL))
                     continue;
 
                 /* visit the fanout point */
-                nnode_t* next_node = current_node->output_pins[j]->net->fanout_pins[k]->node;
+                nnode_t *next_node = current_node->output_pins[j]->net->fanout_pins[k]->node;
 
                 if (next_node == NULL)
                     continue;
@@ -242,12 +246,12 @@ void forward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnode
                 temp_string2 = vtr::strdup(make_simple_name(next_node->name, "^-+.", '_').c_str());
                 if (current_node->type == OUTPUT_NODE) {
                     /* renaming for output nodes */
-                    temp_string = (char*)vtr::realloc(temp_string, sizeof(char) * strlen(temp_string) + 1 + 2);
+                    temp_string = (char *)vtr::realloc(temp_string, sizeof(char) * strlen(temp_string) + 1 + 2);
                     odin_sprintf(temp_string, "%s_O", temp_string);
                 }
                 if (next_node->type == OUTPUT_NODE) {
                     /* renaming for output nodes */
-                    temp_string2 = (char*)vtr::realloc(temp_string2, sizeof(char) * strlen(temp_string2) + 1 + 2);
+                    temp_string2 = (char *)vtr::realloc(temp_string2, sizeof(char) * strlen(temp_string2) + 1 + 2);
                     odin_sprintf(temp_string2, "%s_O", temp_string2);
                 }
 
@@ -258,7 +262,7 @@ void forward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnode
 
                 if ((next_node->traverse_visited != marker_value) && (next_node->type != FF_NODE)) {
                     /* IF - not visited yet then add to list */
-                    stack_of_nodes = (nnode_t**)vtr::realloc(stack_of_nodes, sizeof(nnode_t*) * (num_stack_of_nodes + 1));
+                    stack_of_nodes = (nnode_t **)vtr::realloc(stack_of_nodes, sizeof(nnode_t *) * (num_stack_of_nodes + 1));
                     stack_of_nodes[num_stack_of_nodes] = next_node;
                     num_stack_of_nodes++;
                 }
@@ -278,19 +282,20 @@ void forward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnode
 /*---------------------------------------------------------------------------------------------
  * (function: backward_traversal_net_graph_display()
  *-------------------------------------------------------------------------------------------*/
-void backward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnode_t* node) {
+void backward_traversal_net_graph_display(FILE *fp, uintptr_t marker_value, nnode_t *node)
+{
     int j;
-    char* temp_string;
-    char* temp_string2;
-    nnode_t** stack_of_nodes;
+    char *temp_string;
+    char *temp_string2;
+    nnode_t **stack_of_nodes;
     int index_in_stack = 0;
     int num_stack_of_nodes = 1;
 
-    stack_of_nodes = (nnode_t**)vtr::malloc(sizeof(nnode_t*) * 1);
+    stack_of_nodes = (nnode_t **)vtr::malloc(sizeof(nnode_t *) * 1);
     stack_of_nodes[0] = node;
 
     while (index_in_stack != num_stack_of_nodes) {
-        nnode_t* current_node = stack_of_nodes[index_in_stack];
+        nnode_t *current_node = stack_of_nodes[index_in_stack];
 
         /* mark it */
         current_node->traverse_visited = marker_value;
@@ -317,13 +322,14 @@ void backward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnod
             if (current_node->input_pins[j] == NULL)
                 continue;
 
-            if ((current_node->input_pins[j] == NULL) || (current_node->input_pins[j]->net == NULL) || (current_node->input_pins[j]->net->num_driver_pins == 0))
+            if ((current_node->input_pins[j] == NULL) || (current_node->input_pins[j]->net == NULL) ||
+                (current_node->input_pins[j]->net->num_driver_pins == 0))
                 continue;
 
             /* visit the fanout point */
 
             for (int k = 0; k < current_node->input_pins[j]->net->num_driver_pins; k++) {
-                nnode_t* next_node = current_node->input_pins[j]->net->driver_pins[k]->node;
+                nnode_t *next_node = current_node->input_pins[j]->net->driver_pins[k]->node;
                 if (next_node == NULL)
                     continue;
 
@@ -337,7 +343,7 @@ void backward_traversal_net_graph_display(FILE* fp, uintptr_t marker_value, nnod
 
                 if ((next_node->traverse_visited != marker_value) && (next_node->type != FF_NODE)) {
                     /* IF - not visited yet then add to list */
-                    stack_of_nodes = (nnode_t**)vtr::realloc(stack_of_nodes, sizeof(nnode_t*) * (num_stack_of_nodes + 1));
+                    stack_of_nodes = (nnode_t **)vtr::realloc(stack_of_nodes, sizeof(nnode_t *) * (num_stack_of_nodes + 1));
                     stack_of_nodes[num_stack_of_nodes] = next_node;
                     num_stack_of_nodes++;
                 }

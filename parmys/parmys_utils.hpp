@@ -20,30 +20,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef HASHTABLE_H
-#define HASHTABLE_H
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string>
-#include <unordered_map>
+#ifndef __YOSYS_UTILS_H__
+#define __YOSYS_UTILS_H__
 
-class Hashtable
-{
-  private:
-    std::unordered_map<std::string, void *> my_map;
+#include "odin_types.h"
 
-  public:
-    // Adds an item to the hashtable.
-    void add(std::string key, void *item);
-    // Removes an item from the hashtable. If the item is not present, a null pointer is returned.
-    void *remove(std::string key);
-    // Gets an item from the hashtable without removing it. If the item is not present, a null pointer is returned.
-    void *get(std::string key);
-    // Check to see if the hashtable is empty.
-    bool is_empty();
-    // calls free on each item.
-    void destroy_free_items();
-};
+Yosys::Wire *to_wire(std::string wire_name, Yosys::Module *module);
+std::pair<Yosys::RTLIL::IdString, int> wideports_split(std::string name);
+const std::string str(Yosys::RTLIL::SigBit sig);
+const std::string str(Yosys::RTLIL::IdString id);
+void handle_cell_wideports_cache(Yosys::hashlib::dict<Yosys::RTLIL::IdString, Yosys::hashlib::dict<int, Yosys::SigBit>> *cell_wideports_cache,
+                                 Yosys::Design *design, Yosys::Module *module, Yosys::Cell *cell);
+void handle_wideports_cache(Yosys::hashlib::dict<Yosys::RTLIL::IdString, std::pair<int, bool>> *wideports_cache, Yosys::Module *module);
 
-#endif
+#endif //__YOSYS_UTILS_H__

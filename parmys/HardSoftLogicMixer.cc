@@ -28,7 +28,8 @@
 #include "multipliers.h" // instantiate_simple_soft_multiplier
 #include "odin_error.h"  // error_message
 
-HardSoftLogicMixer::HardSoftLogicMixer() {
+HardSoftLogicMixer::HardSoftLogicMixer()
+{
     for (int i = 0; i < operation_list_END; i++) {
         if (i == MULTIPLY) {
             this->_opts[i] = new MultsOpt();
@@ -38,32 +39,27 @@ HardSoftLogicMixer::HardSoftLogicMixer() {
     }
 }
 
-HardSoftLogicMixer::~HardSoftLogicMixer() {
+HardSoftLogicMixer::~HardSoftLogicMixer()
+{
     for (int i = 0; i < operation_list_END; i++) {
         delete this->_opts[i];
     }
 }
-void HardSoftLogicMixer::note_candidate_node(nnode_t* opNode) {
-    _nodes_by_opt[opNode->type].push_back(opNode);
-}
+void HardSoftLogicMixer::note_candidate_node(nnode_t *opNode) { _nodes_by_opt[opNode->type].push_back(opNode); }
 
-bool HardSoftLogicMixer::hardenable(nnode_t* node) {
-    return this->_opts[node->type]->hardenable(node);
-}
+bool HardSoftLogicMixer::hardenable(nnode_t *node) { return this->_opts[node->type]->hardenable(node); }
 
-bool HardSoftLogicMixer::enabled(nnode_t* node) {
-    return this->_opts[node->type]->enabled();
-}
+bool HardSoftLogicMixer::enabled(nnode_t *node) { return this->_opts[node->type]->enabled(); }
 
-int HardSoftLogicMixer::hard_blocks_needed(operation_list opt) {
-    return _nodes_by_opt[opt].size();
-}
+int HardSoftLogicMixer::hard_blocks_needed(operation_list opt) { return _nodes_by_opt[opt].size(); }
 
-void HardSoftLogicMixer::partial_map_node(nnode_t* node, short traverse_number, netlist_t* netlist) {
+void HardSoftLogicMixer::partial_map_node(nnode_t *node, short traverse_number, netlist_t *netlist)
+{
     _opts[node->type]->partial_map_node(node, traverse_number, netlist, this);
 }
 
-void HardSoftLogicMixer::perform_optimizations(netlist_t* netlist) {
+void HardSoftLogicMixer::perform_optimizations(netlist_t *netlist)
+{
     if (_opts[MULTIPLY]->enabled()) {
         int blocks_needed = this->hard_blocks_needed(MULTIPLY);
         _opts[MULTIPLY]->set_blocks_needed(blocks_needed);

@@ -21,36 +21,38 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <string.h>
+#include "odin_globals.h"
+#include "odin_types.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "odin_types.h"
-#include "odin_globals.h"
+#include <string.h>
 
 #include "netlist_utils.h"
 #include "odin_util.h"
 // #include "ast_util.h"
-#include "string_cache.h"
 #include "netlist_check.h"
 #include "netlist_visualizer.h"
+#include "string_cache.h"
 #include "vtr_memory.h"
 
-void levelize_backwards(netlist_t* netlist);
-void levelize_backwards_clean_checking_for_liveness(netlist_t* netlist);
-void levelize_forwards(netlist_t* netlist);
-void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t* netlist);
-nnode_t* find_node_at_top_of_combo_loop(nnode_t* start_node);
-void depth_first_traversal_check_if_forward_leveled(short marker_value, netlist_t* netlist);
-void depth_first_traverse_check_if_forward_leveled(nnode_t* node, uintptr_t traverse_mark_number);
+void levelize_backwards(netlist_t *netlist);
+void levelize_backwards_clean_checking_for_liveness(netlist_t *netlist);
+void levelize_forwards(netlist_t *netlist);
+void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t *netlist);
+nnode_t *find_node_at_top_of_combo_loop(nnode_t *start_node);
+void depth_first_traversal_check_if_forward_leveled(short marker_value, netlist_t *netlist);
+void depth_first_traverse_check_if_forward_leveled(nnode_t *node, uintptr_t traverse_mark_number);
 
-void sequential_levelized_dfs(short marker_value, netlist_t* netlist);
-void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* calling_node, uintptr_t traverse_mark_number, int seq_level, netlist_t* netlist);
+void sequential_levelized_dfs(short marker_value, netlist_t *netlist);
+void depth_first_traverse_until_next_ff_or_output(nnode_t *node, nnode_t *calling_node, uintptr_t traverse_mark_number, int seq_level,
+                                                  netlist_t *netlist);
 
 /*---------------------------------------------------------------------------------------------
  * (function: check_netlist)
  * Note: netlist passed in needs to be initialized by allocate_netlist() to make sure correctly initialized.
  *-------------------------------------------------------------------------------------------*/
-void check_netlist(netlist_t* netlist) {
+void check_netlist(netlist_t *netlist)
+{
     /* create a graph output of this netlist */
     if (configuration.output_netlist_graphs) {
         /* Path is where we are */
@@ -58,23 +60,26 @@ void check_netlist(netlist_t* netlist) {
     }
 }
 
-void depth_traverse_check_combinational_loop(nnode_t* node, short start, STRING_CACHE* in_path);
+void depth_traverse_check_combinational_loop(nnode_t *node, short start, STRING_CACHE *in_path);
 
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traversal_check_if_forward_leveled()
  *-------------------------------------------------------------------------------------------*/
-void sequential_levelized_dfs(short marker_value, netlist_t* netlist) {
+void sequential_levelized_dfs(short marker_value, netlist_t *netlist)
+{
     int i;
 
     int sequential_level = 0;
     netlist->num_sequential_levels = 1;
-    netlist->num_at_sequential_level = (int*)vtr::realloc(netlist->num_at_sequential_level, sizeof(int) * netlist->num_sequential_levels);
-    netlist->sequential_level_nodes = (nnode_t***)vtr::realloc(netlist->sequential_level_nodes, sizeof(nnode_t**) * (netlist->num_sequential_levels));
+    netlist->num_at_sequential_level = (int *)vtr::realloc(netlist->num_at_sequential_level, sizeof(int) * netlist->num_sequential_levels);
+    netlist->sequential_level_nodes =
+      (nnode_t ***)vtr::realloc(netlist->sequential_level_nodes, sizeof(nnode_t **) * (netlist->num_sequential_levels));
     netlist->sequential_level_nodes[netlist->num_sequential_levels - 1] = NULL;
     netlist->num_at_sequential_level[netlist->num_sequential_levels - 1] = 0;
 
     /* allocate the first list.  Includes vcc and gnd */
-    netlist->sequential_level_nodes[sequential_level] = (nnode_t**)vtr::realloc(netlist->sequential_level_nodes[sequential_level], sizeof(nnode_t*) * (netlist->num_top_input_nodes + 2));
+    netlist->sequential_level_nodes[sequential_level] =
+      (nnode_t **)vtr::realloc(netlist->sequential_level_nodes[sequential_level], sizeof(nnode_t *) * (netlist->num_top_input_nodes + 2));
 
     /* add all the primary nodes to the first level */
     for (i = 0; i < netlist->num_top_input_nodes; i++) {
@@ -106,21 +111,27 @@ void sequential_levelized_dfs(short marker_value, netlist_t* netlist) {
         /* Allocate the next level of storage since this part is a forward thing of the next flip-flops at the level */
         /* add anothersequential level.  Note, needs to be done before we depth first the current combinational level. */
         netlist->num_sequential_levels++;
-        netlist->sequential_level_nodes = (nnode_t***)vtr::realloc(netlist->sequential_level_nodes, sizeof(nnode_t**) * (netlist->num_sequential_levels));
-        netlist->num_at_sequential_level = (int*)vtr::realloc(netlist->num_at_sequential_level, sizeof(int) * netlist->num_sequential_levels);
+        netlist->sequential_level_nodes =
+          (nnode_t ***)vtr::realloc(netlist->sequential_level_nodes, sizeof(nnode_t **) * (netlist->num_sequential_levels));
+        netlist->num_at_sequential_level = (int *)vtr::realloc(netlist->num_at_sequential_level, sizeof(int) * netlist->num_sequential_levels);
         netlist->sequential_level_nodes[netlist->num_sequential_levels - 1] = NULL;
         netlist->num_at_sequential_level[netlist->num_sequential_levels - 1] = 0;
 
         /* deals with recording the combinational nodes that terminate this level */
         netlist->num_sequential_level_combinational_termination_nodes++;
-        netlist->sequential_level_combinational_termination_node = (nnode_t***)vtr::realloc(netlist->sequential_level_combinational_termination_node, sizeof(nnode_t**) * (netlist->num_sequential_level_combinational_termination_nodes));
-        netlist->num_at_sequential_level_combinational_termination_node = (int*)vtr::realloc(netlist->num_at_sequential_level_combinational_termination_node, sizeof(int) * netlist->num_sequential_level_combinational_termination_nodes);
+        netlist->sequential_level_combinational_termination_node =
+          (nnode_t ***)vtr::realloc(netlist->sequential_level_combinational_termination_node,
+                                    sizeof(nnode_t **) * (netlist->num_sequential_level_combinational_termination_nodes));
+        netlist->num_at_sequential_level_combinational_termination_node =
+          (int *)vtr::realloc(netlist->num_at_sequential_level_combinational_termination_node,
+                              sizeof(int) * netlist->num_sequential_level_combinational_termination_nodes);
         netlist->sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1] = NULL;
         netlist->num_at_sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1] = 0;
 
         /* go through the entire list, mark with sequential level, and build the next list */
         for (i = 0; i < netlist->num_at_sequential_level[sequential_level]; i++) {
-            depth_first_traverse_until_next_ff_or_output(netlist->sequential_level_nodes[sequential_level][i], NULL, marker_value, sequential_level, netlist);
+            depth_first_traverse_until_next_ff_or_output(netlist->sequential_level_nodes[sequential_level][i], NULL, marker_value, sequential_level,
+                                                         netlist);
         }
 
         /* now potentially do next sequential level */
@@ -131,10 +142,12 @@ void sequential_levelized_dfs(short marker_value, netlist_t* netlist) {
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traverse_until_next_ff_or_output)
  *-------------------------------------------------------------------------------------------*/
-void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* calling_node, uintptr_t traverse_mark_number, int seq_level, netlist_t* netlist) {
+void depth_first_traverse_until_next_ff_or_output(nnode_t *node, nnode_t *calling_node, uintptr_t traverse_mark_number, int seq_level,
+                                                  netlist_t *netlist)
+{
     int i, j;
-    nnode_t* next_node;
-    nnet_t* next_net;
+    nnode_t *next_node;
+    nnet_t *next_net;
 
     /* first, check if the clalling node should be recorderd */
     if ((calling_node != NULL) && ((node->type == FF_NODE) || (node->type == OUTPUT_NODE))) {
@@ -142,8 +155,15 @@ void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* callin
         if (calling_node->sequential_terminator == false) {
             /* IF - it hasn't been stored before */
             netlist->num_at_sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1]++;
-            netlist->sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1] = (nnode_t**)vtr::realloc(netlist->sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1], sizeof(nnode_t*) * netlist->num_at_sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1]);
-            netlist->sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1][netlist->num_at_sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1] - 1] = calling_node;
+            netlist->sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1] =
+              (nnode_t **)vtr::realloc(
+                netlist->sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1],
+                sizeof(nnode_t *) *
+                  netlist->num_at_sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1]);
+            netlist->sequential_level_combinational_termination_node
+              [netlist->num_sequential_level_combinational_termination_nodes - 1]
+              [netlist->num_at_sequential_level_combinational_termination_node[netlist->num_sequential_level_combinational_termination_nodes - 1] -
+               1] = calling_node;
             /* mark the node locally */
             calling_node->sequential_terminator = true;
         }
@@ -163,13 +183,13 @@ void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* callin
 
         /* add to the next sequntial list */
         netlist->num_at_sequential_level[seq_level + 1]++;
-        netlist->sequential_level_nodes[seq_level + 1] = (nnode_t**)vtr::realloc(netlist->sequential_level_nodes[seq_level + 1], sizeof(nnode_t*) * netlist->num_at_sequential_level[seq_level + 1]);
+        netlist->sequential_level_nodes[seq_level + 1] = (nnode_t **)vtr::realloc(
+          netlist->sequential_level_nodes[seq_level + 1], sizeof(nnode_t *) * netlist->num_at_sequential_level[seq_level + 1]);
         netlist->sequential_level_nodes[seq_level + 1][netlist->num_at_sequential_level[seq_level + 1] - 1] = node;
 
         return;
     } else {
         /* ELSE - this is a node so depth visit it */
-
 
         node->traverse_visited = traverse_mark_number;
         node->sequential_level = seq_level;
@@ -187,7 +207,6 @@ void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* callin
                 if (next_node == NULL)
                     continue;
 
-
                 depth_first_traverse_until_next_ff_or_output(next_node, node, traverse_mark_number, seq_level, netlist);
             }
         }
@@ -197,7 +216,8 @@ void depth_first_traverse_until_next_ff_or_output(nnode_t* node, nnode_t* callin
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traversal_check_if_forward_leveled()
  *-------------------------------------------------------------------------------------------*/
-void depth_first_traversal_check_if_forward_leveled(short marker_value, netlist_t* netlist) {
+void depth_first_traversal_check_if_forward_leveled(short marker_value, netlist_t *netlist)
+{
     int i;
 
     /* start with the primary input list */
@@ -216,16 +236,16 @@ void depth_first_traversal_check_if_forward_leveled(short marker_value, netlist_
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traverse)
  *-------------------------------------------------------------------------------------------*/
-void depth_first_traverse_check_if_forward_leveled(nnode_t* node, uintptr_t traverse_mark_number) {
+void depth_first_traverse_check_if_forward_leveled(nnode_t *node, uintptr_t traverse_mark_number)
+{
     int i, j;
-    nnode_t* next_node;
-    nnet_t* next_net;
+    nnode_t *next_node;
+    nnet_t *next_net;
 
     if (node->traverse_visited == traverse_mark_number) {
         return;
     } else {
         /* ELSE - this is a new node so depth visit it */
-
 
         node->traverse_visited = traverse_mark_number;
 
@@ -243,10 +263,10 @@ void depth_first_traverse_check_if_forward_leveled(nnode_t* node, uintptr_t trav
                     continue;
 
                 if ((next_node->forward_level == -1) && (next_node->type != FF_NODE)) {
-                    graphVizOutputCombinationalNet(configuration.debug_output_path, "combo_loop", COMBO_LOOP_ERROR, /*next_node);*/ find_node_at_top_of_combo_loop(next_node));
+                    graphVizOutputCombinationalNet(configuration.debug_output_path, "combo_loop", COMBO_LOOP_ERROR,
+                                                   /*next_node);*/ find_node_at_top_of_combo_loop(next_node));
                     oassert(false);
                 }
-
 
                 depth_first_traverse_check_if_forward_leveled(next_node, traverse_mark_number);
             }
@@ -258,7 +278,8 @@ void depth_first_traverse_check_if_forward_leveled(nnode_t* node, uintptr_t trav
  * Note that this levlizing is combinational delay levels where the assumption is that
  * each node has a unit delay.
  *-------------------------------------------------------------------------------------------*/
-void levelize_forwards(netlist_t* netlist) {
+void levelize_forwards(netlist_t *netlist)
+{
     int i, j, k;
     int cur_for_level;
     short more_levels = true;
@@ -267,33 +288,37 @@ void levelize_forwards(netlist_t* netlist) {
     /* add all the POs and FFs POs as forward level 0 */
     cur_for_level = 0;
     netlist->num_forward_levels = 1;
-    netlist->num_at_forward_level = (int*)vtr::realloc(netlist->num_at_forward_level, sizeof(int) * netlist->num_forward_levels);
-    netlist->forward_levels = (nnode_t***)vtr::realloc(netlist->forward_levels, sizeof(nnode_t**) * (netlist->num_forward_levels));
+    netlist->num_at_forward_level = (int *)vtr::realloc(netlist->num_at_forward_level, sizeof(int) * netlist->num_forward_levels);
+    netlist->forward_levels = (nnode_t ***)vtr::realloc(netlist->forward_levels, sizeof(nnode_t **) * (netlist->num_forward_levels));
     netlist->forward_levels[netlist->num_forward_levels - 1] = NULL;
     netlist->num_at_forward_level[netlist->num_forward_levels - 1] = 0;
     for (i = 0; i < netlist->num_top_input_nodes + 3; i++) {
         if ((i == netlist->num_top_input_nodes) && (netlist->vcc_node != NULL)) {
             /* vcc */
-            netlist->forward_levels[cur_for_level] = (nnode_t**)vtr::realloc(netlist->forward_levels[cur_for_level], sizeof(nnode_t*) * (netlist->num_at_forward_level[cur_for_level] + 1));
+            netlist->forward_levels[cur_for_level] = (nnode_t **)vtr::realloc(netlist->forward_levels[cur_for_level],
+                                                                              sizeof(nnode_t *) * (netlist->num_at_forward_level[cur_for_level] + 1));
             netlist->forward_levels[cur_for_level][netlist->num_at_forward_level[cur_for_level]] = netlist->vcc_node;
             netlist->num_at_forward_level[cur_for_level]++;
             netlist->vcc_node->forward_level = 0;
         } else if ((i == netlist->num_top_input_nodes + 1) && (netlist->gnd_node != NULL)) {
             /* gnd */
-            netlist->forward_levels[cur_for_level] = (nnode_t**)vtr::realloc(netlist->forward_levels[cur_for_level], sizeof(nnode_t*) * (netlist->num_at_forward_level[cur_for_level] + 1));
+            netlist->forward_levels[cur_for_level] = (nnode_t **)vtr::realloc(netlist->forward_levels[cur_for_level],
+                                                                              sizeof(nnode_t *) * (netlist->num_at_forward_level[cur_for_level] + 1));
             netlist->forward_levels[cur_for_level][netlist->num_at_forward_level[cur_for_level]] = netlist->gnd_node;
             netlist->num_at_forward_level[cur_for_level]++;
             netlist->gnd_node->forward_level = 0;
         } else if ((i == netlist->num_top_input_nodes + 2) && (netlist->pad_node != NULL)) {
             /* pad */
-            netlist->forward_levels[cur_for_level] = (nnode_t**)vtr::realloc(netlist->forward_levels[cur_for_level], sizeof(nnode_t*) * (netlist->num_at_forward_level[cur_for_level] + 1));
+            netlist->forward_levels[cur_for_level] = (nnode_t **)vtr::realloc(netlist->forward_levels[cur_for_level],
+                                                                              sizeof(nnode_t *) * (netlist->num_at_forward_level[cur_for_level] + 1));
             netlist->forward_levels[cur_for_level][netlist->num_at_forward_level[cur_for_level]] = netlist->pad_node;
             netlist->num_at_forward_level[cur_for_level]++;
             netlist->pad_node->forward_level = 0;
         } else if (i >= netlist->num_top_input_nodes) {
             continue;
         } else if (netlist->top_input_nodes[i] != NULL) {
-            netlist->forward_levels[cur_for_level] = (nnode_t**)vtr::realloc(netlist->forward_levels[cur_for_level], sizeof(nnode_t*) * (netlist->num_at_forward_level[cur_for_level] + 1));
+            netlist->forward_levels[cur_for_level] = (nnode_t **)vtr::realloc(netlist->forward_levels[cur_for_level],
+                                                                              sizeof(nnode_t *) * (netlist->num_at_forward_level[cur_for_level] + 1));
             netlist->forward_levels[cur_for_level][netlist->num_at_forward_level[cur_for_level]] = netlist->top_input_nodes[i];
             netlist->num_at_forward_level[cur_for_level]++;
             netlist->top_input_nodes[i]->forward_level = 0;
@@ -301,7 +326,8 @@ void levelize_forwards(netlist_t* netlist) {
     }
     for (i = 0; i < netlist->num_ff_nodes; i++) {
         if (netlist->ff_nodes[i] != NULL) {
-            netlist->forward_levels[cur_for_level] = (nnode_t**)vtr::realloc(netlist->forward_levels[cur_for_level], sizeof(nnode_t*) * (netlist->num_at_forward_level[cur_for_level] + 1));
+            netlist->forward_levels[cur_for_level] = (nnode_t **)vtr::realloc(netlist->forward_levels[cur_for_level],
+                                                                              sizeof(nnode_t *) * (netlist->num_at_forward_level[cur_for_level] + 1));
             netlist->forward_levels[cur_for_level][netlist->num_at_forward_level[cur_for_level]] = netlist->ff_nodes[i];
             netlist->num_at_forward_level[cur_for_level]++;
             netlist->ff_nodes[i]->forward_level = 0;
@@ -311,48 +337,49 @@ void levelize_forwards(netlist_t* netlist) {
     while (more_levels) {
         /* another level so add space */
         netlist->num_forward_levels++;
-        netlist->num_at_forward_level = (int*)vtr::realloc(netlist->num_at_forward_level, sizeof(int) * netlist->num_forward_levels);
-        netlist->forward_levels = (nnode_t***)vtr::realloc(netlist->forward_levels, sizeof(nnode_t**) * (netlist->num_forward_levels));
+        netlist->num_at_forward_level = (int *)vtr::realloc(netlist->num_at_forward_level, sizeof(int) * netlist->num_forward_levels);
+        netlist->forward_levels = (nnode_t ***)vtr::realloc(netlist->forward_levels, sizeof(nnode_t **) * (netlist->num_forward_levels));
         netlist->forward_levels[netlist->num_forward_levels - 1] = NULL;
         netlist->num_at_forward_level[netlist->num_forward_levels - 1] = 0;
 
         /* go through each element at this level */
         for (i = 0; i < netlist->num_at_forward_level[cur_for_level]; i++) {
-            nnode_t* current_node = netlist->forward_levels[cur_for_level][i];
+            nnode_t *current_node = netlist->forward_levels[cur_for_level][i];
             if (current_node == NULL)
                 continue;
 
             /* at each node visit all the inputs */
             for (j = 0; j < current_node->num_output_pins; j++) {
-                int* fanouts_visited;
+                int *fanouts_visited;
                 if (current_node->output_pins[j] == NULL)
                     continue;
 
                 for (k = 0; k < current_node->output_pins[j]->net->num_fanout_pins; k++) {
                     int idx;
                     /* visit the fanout point */
-                    if ((current_node->output_pins[j] == NULL) || (current_node->output_pins[j]->net == NULL) || (current_node->output_pins[j]->net->fanout_pins[k] == NULL))
+                    if ((current_node->output_pins[j] == NULL) || (current_node->output_pins[j]->net == NULL) ||
+                        (current_node->output_pins[j]->net->fanout_pins[k] == NULL))
                         continue;
 
-                    nnode_t* output_node = current_node->output_pins[j]->net->fanout_pins[k]->node;
+                    nnode_t *output_node = current_node->output_pins[j]->net->fanout_pins[k]->node;
 
                     if (output_node == NULL)
                         continue;
 
                     if (output_node->node_data == NULL) {
                         /* if this fanout hasn't been visited yet this will be null */
-                        fanouts_visited = (int*)vtr::malloc(sizeof(int) * (output_node->num_input_pins));
+                        fanouts_visited = (int *)vtr::malloc(sizeof(int) * (output_node->num_input_pins));
 
                         for (idx = 0; idx < output_node->num_input_pins; idx++) {
                             fanouts_visited[idx] = -1;
                         }
 
-                        output_node->node_data = (void*)fanouts_visited;
+                        output_node->node_data = (void *)fanouts_visited;
                         output_node->unique_node_data_id = LEVELIZE;
                     } else {
                         /* ELSE - get the list */
                         oassert(output_node->unique_node_data_id == LEVELIZE);
-                        fanouts_visited = (int*)output_node->node_data;
+                        fanouts_visited = (int *)output_node->node_data;
                     }
 
                     /* mark this entry as visited */
@@ -369,7 +396,8 @@ void levelize_forwards(netlist_t* netlist) {
 
                     if ((all_visited == true) && (output_node->type != FF_NODE)) {
                         /* This one has been visited by everyone */
-                        netlist->forward_levels[cur_for_level + 1] = (nnode_t**)vtr::realloc(netlist->forward_levels[cur_for_level + 1], sizeof(nnode_t*) * (netlist->num_at_forward_level[cur_for_level + 1] + 1));
+                        netlist->forward_levels[cur_for_level + 1] = (nnode_t **)vtr::realloc(
+                          netlist->forward_levels[cur_for_level + 1], sizeof(nnode_t *) * (netlist->num_at_forward_level[cur_for_level + 1] + 1));
                         netlist->forward_levels[cur_for_level + 1][netlist->num_at_forward_level[cur_for_level + 1]] = output_node;
                         netlist->num_at_forward_level[cur_for_level + 1]++;
 
@@ -392,7 +420,8 @@ void levelize_forwards(netlist_t* netlist) {
 /*---------------------------------------------------------------------------------------------
  * (function: levelize_forwards_clean_checking_for_combo_loop_and_liveness)
  *-------------------------------------------------------------------------------------------*/
-void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t* netlist) {
+void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t *netlist)
+{
     int i, j, k;
     int cur_for_level;
     short more_levels = true;
@@ -403,22 +432,23 @@ void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t* net
     while (more_levels) {
         /* go through each element at this level */
         for (i = 0; i < netlist->num_at_forward_level[cur_for_level]; i++) {
-            nnode_t* current_node = netlist->forward_levels[cur_for_level][i];
+            nnode_t *current_node = netlist->forward_levels[cur_for_level][i];
             if (current_node == NULL)
                 continue;
 
             /* at each node visit all the inputs */
             for (j = 0; j < current_node->num_output_pins; j++) {
-                int* fanouts_visited;
+                int *fanouts_visited;
                 if (current_node->output_pins[j] == NULL)
                     continue;
 
                 for (k = 0; k < current_node->output_pins[j]->net->num_fanout_pins; k++) {
-                    if ((current_node->output_pins[j] == NULL) || (current_node->output_pins[j]->net == NULL) || (current_node->output_pins[j]->net->fanout_pins[k] == NULL))
+                    if ((current_node->output_pins[j] == NULL) || (current_node->output_pins[j]->net == NULL) ||
+                        (current_node->output_pins[j]->net->fanout_pins[k] == NULL))
                         continue;
 
                     /* visit the fanout point */
-                    nnode_t* output_node = current_node->output_pins[j]->net->fanout_pins[k]->node;
+                    nnode_t *output_node = current_node->output_pins[j]->net->fanout_pins[k]->node;
 
                     if (output_node == NULL)
                         continue;
@@ -429,7 +459,7 @@ void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t* net
                         int idx;
                         /* ELSE - get the list */
                         oassert(output_node->unique_node_data_id == LEVELIZE);
-                        fanouts_visited = (int*)output_node->node_data;
+                        fanouts_visited = (int *)output_node->node_data;
                         output_node->node_data = NULL;
 
                         /* check if they've all been marked */
@@ -443,7 +473,11 @@ void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t* net
 
                         if (all_visited == false) {
                             /* Combo node since one of the outputs hasn'y been visisted. */
-                            error_message(NETLIST, output_node->loc, "!!!Combinational loop on forward pass.  Node %s is missing a driven pin idx %d.  Isn't neccessarily the culprit of the combinational loop.  Odin only detects combinational loops, but currently doesn't pinpoint.\n", output_node->name, idx);
+                            error_message(
+                              NETLIST, output_node->loc,
+                              "!!!Combinational loop on forward pass.  Node %s is missing a driven pin idx %d.  Isn't neccessarily the culprit of "
+                              "the combinational loop.  Odin only detects combinational loops, but currently doesn't pinpoint.\n",
+                              output_node->name, idx);
                         }
                         /* free the data and reset to be used elsewhere */
                         vtr::free(fanouts_visited);
@@ -451,7 +485,10 @@ void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t* net
                     }
 
                     if ((output_node->backward_level == -1) && (output_node->type != FF_NODE)) {
-                        warning_message(NETLIST, output_node->loc, "Node does not connect to a primary output or FF...DEAD NODE!!!.  Node %s is not connected to a primary output.\n", output_node->name);
+                        warning_message(
+                          NETLIST, output_node->loc,
+                          "Node does not connect to a primary output or FF...DEAD NODE!!!.  Node %s is not connected to a primary output.\n",
+                          output_node->name);
                     }
                 }
             }
@@ -472,7 +509,8 @@ void levelize_forwards_clean_checking_for_combo_loop_and_liveness(netlist_t* net
  * (function: levelize_backwards)
  * Note this levelizing is a reverse combinational delay count
  *-------------------------------------------------------------------------------------------*/
-void levelize_backwards(netlist_t* netlist) {
+void levelize_backwards(netlist_t *netlist)
+{
     int i, j, k;
     int cur_back_level;
     short more_levels = true;
@@ -481,13 +519,14 @@ void levelize_backwards(netlist_t* netlist) {
     /* add all the POs and FFs POs as backward level 0 */
     cur_back_level = 0;
     netlist->num_backward_levels = 1;
-    netlist->num_at_backward_level = (int*)vtr::realloc(netlist->num_at_backward_level, sizeof(int) * netlist->num_backward_levels);
-    netlist->backward_levels = (nnode_t***)vtr::realloc(netlist->backward_levels, sizeof(nnode_t**) * (netlist->num_backward_levels));
+    netlist->num_at_backward_level = (int *)vtr::realloc(netlist->num_at_backward_level, sizeof(int) * netlist->num_backward_levels);
+    netlist->backward_levels = (nnode_t ***)vtr::realloc(netlist->backward_levels, sizeof(nnode_t **) * (netlist->num_backward_levels));
     netlist->backward_levels[netlist->num_backward_levels - 1] = NULL;
     netlist->num_at_backward_level[netlist->num_backward_levels - 1] = 0;
     for (i = 0; i < netlist->num_top_output_nodes; i++) {
         if (netlist->top_output_nodes[i] != NULL) {
-            netlist->backward_levels[cur_back_level] = (nnode_t**)vtr::realloc(netlist->backward_levels[cur_back_level], sizeof(nnode_t*) * (netlist->num_at_backward_level[cur_back_level] + 1));
+            netlist->backward_levels[cur_back_level] = (nnode_t **)vtr::realloc(
+              netlist->backward_levels[cur_back_level], sizeof(nnode_t *) * (netlist->num_at_backward_level[cur_back_level] + 1));
             netlist->backward_levels[cur_back_level][netlist->num_at_backward_level[cur_back_level]] = netlist->top_output_nodes[i];
             netlist->num_at_backward_level[cur_back_level]++;
             netlist->top_output_nodes[i]->backward_level = 0;
@@ -495,7 +534,8 @@ void levelize_backwards(netlist_t* netlist) {
     }
     for (i = 0; i < netlist->num_ff_nodes; i++) {
         if (netlist->ff_nodes[i] != NULL) {
-            netlist->backward_levels[cur_back_level] = (nnode_t**)vtr::realloc(netlist->backward_levels[cur_back_level], sizeof(nnode_t*) * (netlist->num_at_backward_level[cur_back_level] + 1));
+            netlist->backward_levels[cur_back_level] = (nnode_t **)vtr::realloc(
+              netlist->backward_levels[cur_back_level], sizeof(nnode_t *) * (netlist->num_at_backward_level[cur_back_level] + 1));
             netlist->backward_levels[cur_back_level][netlist->num_at_backward_level[cur_back_level]] = netlist->ff_nodes[i];
             netlist->num_at_backward_level[cur_back_level]++;
             netlist->ff_nodes[i]->backward_level = 0;
@@ -505,36 +545,36 @@ void levelize_backwards(netlist_t* netlist) {
     while (more_levels) {
         /* another level so add space */
         netlist->num_backward_levels++;
-        netlist->num_at_backward_level = (int*)vtr::realloc(netlist->num_at_backward_level, sizeof(int) * netlist->num_backward_levels);
-        netlist->backward_levels = (nnode_t***)vtr::realloc(netlist->backward_levels, sizeof(nnode_t**) * (netlist->num_backward_levels));
+        netlist->num_at_backward_level = (int *)vtr::realloc(netlist->num_at_backward_level, sizeof(int) * netlist->num_backward_levels);
+        netlist->backward_levels = (nnode_t ***)vtr::realloc(netlist->backward_levels, sizeof(nnode_t **) * (netlist->num_backward_levels));
         netlist->backward_levels[netlist->num_backward_levels - 1] = NULL;
         netlist->num_at_backward_level[netlist->num_backward_levels - 1] = 0;
 
         /* go through each element at this level */
         for (i = 0; i < netlist->num_at_backward_level[cur_back_level]; i++) {
-            nnode_t* current_node = netlist->backward_levels[cur_back_level][i];
+            nnode_t *current_node = netlist->backward_levels[cur_back_level][i];
             if (current_node) {
                 /* at each node visit all the inputs */
                 for (j = 0; j < current_node->num_input_pins; j++) {
-                    int* fanouts_visited = NULL;
+                    int *fanouts_visited = NULL;
                     if (current_node->input_pins[j]) {
                         /* visit the fanout point */
-                        nnet_t* fanout_net = current_node->input_pins[j]->net;
+                        nnet_t *fanout_net = current_node->input_pins[j]->net;
                         if (fanout_net) {
                             if (fanout_net->net_data == NULL) {
                                 int idx;
                                 /* if this fanout hasn't been visited yet this will be null */
-                                fanouts_visited = (int*)vtr::malloc(sizeof(int) * (fanout_net->num_fanout_pins));
+                                fanouts_visited = (int *)vtr::malloc(sizeof(int) * (fanout_net->num_fanout_pins));
 
                                 for (idx = 0; idx < fanout_net->num_fanout_pins; idx++) {
                                     fanouts_visited[idx] = -1;
                                 }
 
-                                fanout_net->net_data = (void*)fanouts_visited;
+                                fanout_net->net_data = (void *)fanouts_visited;
                                 fanout_net->unique_net_data_id = LEVELIZE;
                             } else {
                                 /* ELSE - get the list */
-                                fanouts_visited = (int*)fanout_net->net_data;
+                                fanouts_visited = (int *)fanout_net->net_data;
                                 oassert(fanout_net->unique_net_data_id == LEVELIZE);
                             }
 
@@ -546,10 +586,7 @@ void levelize_backwards(netlist_t* netlist) {
                             /* check if they've all been marked */
                             all_visited = true;
                             for (k = 0; k < fanout_net->num_fanout_pins && all_visited; k++) {
-                                all_visited = (!(
-                                    fanout_net->fanout_pins[k]
-                                    && fanout_net->fanout_pins[k]->node
-                                    && fanouts_visited[k] == -1));
+                                all_visited = (!(fanout_net->fanout_pins[k] && fanout_net->fanout_pins[k]->node && fanouts_visited[k] == -1));
                             }
 
                             if (all_visited) {
@@ -559,8 +596,11 @@ void levelize_backwards(netlist_t* netlist) {
                                     /* This one has been visited by everyone */
                                     if (fanout_net->driver_pins[k]->node->backward_level == -1) {
                                         /* already added to a list...this means that we won't have the correct ordering */
-                                        netlist->backward_levels[cur_back_level + 1] = (nnode_t**)vtr::realloc(netlist->backward_levels[cur_back_level + 1], sizeof(nnode_t*) * (netlist->num_at_backward_level[cur_back_level + 1] + 1));
-                                        netlist->backward_levels[cur_back_level + 1][netlist->num_at_backward_level[cur_back_level + 1]] = fanout_net->driver_pins[k]->node;
+                                        netlist->backward_levels[cur_back_level + 1] =
+                                          (nnode_t **)vtr::realloc(netlist->backward_levels[cur_back_level + 1],
+                                                                   sizeof(nnode_t *) * (netlist->num_at_backward_level[cur_back_level + 1] + 1));
+                                        netlist->backward_levels[cur_back_level + 1][netlist->num_at_backward_level[cur_back_level + 1]] =
+                                          fanout_net->driver_pins[k]->node;
                                         netlist->num_at_backward_level[cur_back_level + 1]++;
                                     }
 
@@ -587,7 +627,8 @@ void levelize_backwards(netlist_t* netlist) {
 /*---------------------------------------------------------------------------------------------
  * (function: levelize_backwards_clean_checking_for_liveness)
  *-------------------------------------------------------------------------------------------*/
-void levelize_backwards_clean_checking_for_liveness(netlist_t* netlist) {
+void levelize_backwards_clean_checking_for_liveness(netlist_t *netlist)
+{
     int i, j, k;
     int cur_back_level;
     short more_levels = true;
@@ -598,18 +639,18 @@ void levelize_backwards_clean_checking_for_liveness(netlist_t* netlist) {
     while (more_levels) {
         /* go through each element at this level */
         for (i = 0; i < netlist->num_at_backward_level[cur_back_level]; i++) {
-            nnode_t* current_node = netlist->backward_levels[cur_back_level][i];
+            nnode_t *current_node = netlist->backward_levels[cur_back_level][i];
             if (current_node == NULL)
                 continue;
 
             /* at each node visit all the inputs */
             for (j = 0; j < current_node->num_input_pins; j++) {
-                int* fanouts_visited;
+                int *fanouts_visited;
                 if (current_node->input_pins[j] == NULL)
                     continue;
 
                 /* visit the fanout point */
-                nnet_t* fanout_net = current_node->input_pins[j]->net;
+                nnet_t *fanout_net = current_node->input_pins[j]->net;
 
                 if (fanout_net->net_data == NULL) {
                     /* IF - already cleaned */
@@ -617,7 +658,7 @@ void levelize_backwards_clean_checking_for_liveness(netlist_t* netlist) {
                 } else {
                     /* ELSE - get the list */
                     oassert(fanout_net->unique_net_data_id == LEVELIZE);
-                    fanouts_visited = (int*)fanout_net->net_data;
+                    fanouts_visited = (int *)fanout_net->net_data;
                     fanout_net->net_data = NULL;
 
                     /* check if they've all been marked */
@@ -631,7 +672,8 @@ void levelize_backwards_clean_checking_for_liveness(netlist_t* netlist) {
 
                     if (all_visited == false) {
                         /* one of these nodes was not visited on the backward analysis */
-                        warning_message(NETLIST, current_node->loc, "Liveness check on backward pass.  Node %s is missing a driving pin idx %d\n", current_node->name, k);
+                        warning_message(NETLIST, current_node->loc, "Liveness check on backward pass.  Node %s is missing a driving pin idx %d\n",
+                                        current_node->name, k);
                     }
 
                     /* free the data and reset to be used elsewhere */
@@ -655,15 +697,16 @@ void levelize_backwards_clean_checking_for_liveness(netlist_t* netlist) {
 /*---------------------------------------------------------------------------------------------
  * (function: find_node_at_top_of_combo_loop)
  *-------------------------------------------------------------------------------------------*/
-nnode_t* find_node_at_top_of_combo_loop(nnode_t* start_node) {
+nnode_t *find_node_at_top_of_combo_loop(nnode_t *start_node)
+{
     int stack_size = 1;
-    nnode_t** stack = (nnode_t**)vtr::calloc(stack_size, sizeof(nnode_t*));
+    nnode_t **stack = (nnode_t **)vtr::calloc(stack_size, sizeof(nnode_t *));
     stack[0] = start_node;
 
     while (true) {
-        nnode_t* next_node = stack[--stack_size];
+        nnode_t *next_node = stack[--stack_size];
         oassert(next_node->unique_node_data_id == LEVELIZE);
-        int* fanouts_visited = (int*)next_node->node_data;
+        int *fanouts_visited = (int *)next_node->node_data;
         next_node->node_data = NULL;
 
         /* check if they've all been marked */
@@ -687,7 +730,7 @@ nnode_t* find_node_at_top_of_combo_loop(nnode_t* start_node) {
                 }
 
                 stack_size++;
-                stack = (nnode_t**)vtr::realloc(stack, sizeof(nnode_t*) * stack_size);
+                stack = (nnode_t **)vtr::realloc(stack, sizeof(nnode_t *) * stack_size);
                 stack[stack_size - 1] = next_node->input_pins[idx_missed]->net->driver_pins[i]->node;
             }
         } else {

@@ -22,32 +22,33 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <math.h>
-#include <algorithm>
 #include "odin_globals.h"
 #include "odin_types.h"
+#include <algorithm>
+#include <ctype.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "ast_util.h"
 #include "odin_util.h"
-#include "vtr_util.h"
 #include "vtr_memory.h"
+#include "vtr_util.h"
 
 /*---------------------------------------------------------------------------
  * (function: create_node_w_type)
  *-------------------------------------------------------------------------*/
-ast_node_t* create_node_w_type(ids id, loc_t loc) {
+ast_node_t *create_node_w_type(ids id, loc_t loc)
+{
     oassert(id != NO_ID);
 
     static long unique_count = 0;
 
-    ast_node_t* new_node;
+    ast_node_t *new_node;
 
-    new_node = (ast_node_t*)vtr::calloc(1, sizeof(ast_node_t));
+    new_node = (ast_node_t *)vtr::calloc(1, sizeof(ast_node_t));
     oassert(new_node != NULL);
 
     new_node->type = id;
@@ -89,10 +90,10 @@ ast_node_t* create_node_w_type(ids id, loc_t loc) {
 /*---------------------------------------------------------------------------------------------
  * (function: create_tree_node_id)
  *-------------------------------------------------------------------------------------------*/
-ast_node_t* create_tree_node_id(char* string, loc_t loc) {
-    ast_node_t* new_node = create_node_w_type(IDENTIFIERS, loc);
+ast_node_t *create_tree_node_id(char *string, loc_t loc)
+{
+    ast_node_t *new_node = create_node_w_type(IDENTIFIERS, loc);
     new_node->types.identifier = string;
 
     return new_node;
 }
-

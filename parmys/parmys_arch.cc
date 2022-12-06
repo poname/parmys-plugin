@@ -2,8 +2,8 @@
 
 #include "arch_util.h"
 #include "odin_types.h"
+#include "parmys_utils.hpp"
 #include "read_xml_arch_file.h"
-#include "yosys_utils.hpp"
 
 USING_YOSYS_NAMESPACE
 PRIVATE_NAMESPACE_BEGIN
@@ -16,7 +16,6 @@ struct ParmysArchPass : public Pass {
         dict<IdString, std::pair<int, bool>> wideports_cache;
 
         module = new Module;
-        // lastcell = nullptr;
         module->name = RTLIL::escape_id(hb->name);
 
         if (design->module(module->name))
@@ -36,7 +35,6 @@ struct ParmysArchPass : public Pass {
                 }
             }
 
-            // move forward until the end of input ports' list
             input_port = input_port->next;
         }
 
@@ -53,7 +51,6 @@ struct ParmysArchPass : public Pass {
                 }
             }
 
-            // move forward until the end of output ports' list
             output_port = output_port->next;
         }
 
@@ -65,7 +62,7 @@ struct ParmysArchPass : public Pass {
         module->attributes[ID::blackbox] = RTLIL::Const(1);
     }
 
-    ParmysArchPass() : Pass("parmys_arch", "loads available hard blocks within the architecture to Design") {}
+    ParmysArchPass() : Pass("parmys_arch", "loads available hard blocks within the architecture to Yosys Design") {}
 
     void help() override
     {
@@ -101,7 +98,7 @@ struct ParmysArchPass : public Pass {
             if (strcmp(hb->name, SINGLE_PORT_RAM_string) && strcmp(hb->name, DUAL_PORT_RAM_string) && strcmp(hb->name, "multiply") &&
                 strcmp(hb->name, "adder")) {
                 add_hb_to_design(hb, design);
-                log("Hard block added to design ---> `%s`\n", hb->name);
+                log("Hard block added to the Design ---> `%s`\n", hb->name);
             }
 
             hb = hb->next;

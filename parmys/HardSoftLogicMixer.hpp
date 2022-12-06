@@ -24,10 +24,11 @@
 #ifndef HARD_SOFT_LOGIC_MIXER_HPP
 #define HARD_SOFT_LOGIC_MIXER_HPP
 
-#include "odin_types.h" // netlist_t, config_t
 #include "MixingOptimization.hpp"
+#include "odin_types.h" // netlist_t, config_t
 
-class HardSoftLogicMixer {
+class HardSoftLogicMixer
+{
   public:
     HardSoftLogicMixer();
     ~HardSoftLogicMixer();
@@ -36,48 +37,48 @@ class HardSoftLogicMixer {
      * in hard block
      *---------------------------------------------------------------------
      */
-    bool hardenable(nnode_t* node);
+    bool hardenable(nnode_t *node);
 
     /*----------------------------------------------------------------------
      * Function: map_deferred_blocksQueries if mixing optimization is enabled for this kind of
      * of hard blocks
      *---------------------------------------------------------------------
      */
-    bool enabled(nnode_t* node);
+    bool enabled(nnode_t *node);
 
     /*----------------------------------------------------------------------
-     * Function: perform_optimizations 
-     * For all  noted nodes, that were noted as candidates to be implemented 
+     * Function: perform_optimizations
+     * For all  noted nodes, that were noted as candidates to be implemented
      * on the hard blocks, launches corresponding procedure of chosing the
      * corresponding blocks
      * Parameters: netlist_t *
      *---------------------------------------------------------------------
      */
-    void perform_optimizations(netlist_t* netlist);
+    void perform_optimizations(netlist_t *netlist);
 
     /*----------------------------------------------------------------------
      * Function: partial_map_node
      * High-level call to provide support for partial mapping layer
-     * Parameters: 
+     * Parameters:
      *      node_t * : pointer to node needs to perform mapping
      *      netlist_t : pointer to netlist
      *---------------------------------------------------------------------
      */
-    void partial_map_node(nnode_t* node, short traverse_number, netlist_t*);
+    void partial_map_node(nnode_t *node, short traverse_number, netlist_t *);
 
     /*----------------------------------------------------------------------
      * Function: note_candidate_node
      * Calculates number of available hard blocks by issuing a call,
      * traverses the netlist and statistics to figure out
      * which operation should be implemented on the hard block
-     * Parameters: 
+     * Parameters:
      *      node_t * : pointer to candidate node
      *---------------------------------------------------------------------
      */
-    void note_candidate_node(nnode_t* node);
+    void note_candidate_node(nnode_t *node);
 
     // This is a container containing all optimization passes
-    MixingOpt* _opts[operation_list_END];
+    MixingOpt *_opts[operation_list_END];
 
   private:
     /*----------------------------------------------------------------------
@@ -90,7 +91,7 @@ class HardSoftLogicMixer {
 
     // This array is composed of vectors, that store nodes that
     // are potential candidates for performing mixing optimization
-    std::vector<nnode_t*> _nodes_by_opt[operation_list_END];
+    std::vector<nnode_t *> _nodes_by_opt[operation_list_END];
 };
 
 #endif

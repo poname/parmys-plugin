@@ -70,10 +70,7 @@ static void instantiate_variable_shift(nnode_t *node, operation_list type, short
 /*-------------------------------------------------------------------------
  * (function: partial_map_top)
  *-----------------------------------------------------------------------*/
-void partial_map_top(netlist_t *netlist)
-{
-    depth_first_traversal_to_partial_map(PARTIAL_MAP_TRAVERSE_VALUE, netlist);
-}
+void partial_map_top(netlist_t *netlist) { depth_first_traversal_to_partial_map(PARTIAL_MAP_TRAVERSE_VALUE, netlist); }
 
 /*---------------------------------------------------------------------------------------------
  * (function: depth_first_traversal_to_parital_map()

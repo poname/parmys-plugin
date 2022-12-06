@@ -1,8 +1,9 @@
 NAME = parmys
 SOURCES = parmys.cc \
 		  parmys_arch.cc \
-		  DesignUpdate.cc \
-		  yosys_utils.cc \
+		  parmys_update.cc \
+		  parmys_utils.cc \
+		  parmys_resolve.cc \
 		  adders.cc \
 		  enum_str.cc \
 		  MixingOptimization.cc \
@@ -24,7 +25,6 @@ SOURCES = parmys.cc \
 		  BlockMemories.cc \
 		  memories.cc \
 		  netlist_visualizer.cc \
-		  Resolve.cc \
 		  Hashtable.cc \
 		  ast_util.cc \
 		  ../third_party/libvtrutil/src/vtr_util.cc \

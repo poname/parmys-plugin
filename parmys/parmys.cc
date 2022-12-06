@@ -1,5 +1,5 @@
 /*
- *  yosys -- Yosys Open SYnthesis Suite
+ *  ParMYS -- Partial MAPper for YosyS
  *
  *  Copyright (C) 2022  Daniel Khadivi <dani-kh@live.com>
  *
@@ -37,7 +37,7 @@
 
 #include "netlist_visualizer.h"
 
-#include "Resolve.hpp"
+#include "parmys_resolve.hpp"
 
 #include "BlockMemories.hpp"
 #include "adders.h"
@@ -50,9 +50,9 @@
 #include "read_xml_config_file.h"
 #include "subtractions.h"
 
-#include "DesignUpdate.hpp"
 #include "ast_util.h"
-#include "yosys_utils.hpp"
+#include "parmys_update.hpp"
+#include "parmys_utils.hpp"
 
 USING_YOSYS_NAMESPACE
 PRIVATE_NAMESPACE_BEGIN
@@ -76,7 +76,6 @@ struct ParMYSPass : public Pass {
         int counts[] = {odin_netlist->num_internal_nodes, odin_netlist->num_ff_nodes, odin_netlist->num_top_output_nodes};
         int num_sets = 3;
 
-        /* hook all the input pins in all the internal nodes to the net */
         int i;
         for (i = 0; i < num_sets; i++) {
             int j;
@@ -96,22 +95,13 @@ struct ParMYSPass : public Pass {
             nnet_t *output_net = (nnet_t *)output_nets_hash->get(input_pin->name);
 
             if (!output_net)
-                error_message(PARSE_BLIF, my_location, "Error: Could not hook up the pin %s: not available, related node: %s.", input_pin->name,
-                              node->name);
+                log_error("Error: Could not hook up the pin %s: not available, related node: %s.", input_pin->name, node->name);
             add_fanout_pin_to_net(output_net, input_pin);
         }
     }
 
-    /**
-     * --------------------------------------------------------------------------------------------
-     * (function: build_top_output_node)
-     *
-     * @brief to create top output nodes and nets for netlist from input pins
-     * --------------------------------------------------------------------------------------------
-     */
     static void build_top_output_node(const char *name_str, netlist_t *odin_netlist)
     {
-        /* new node */
         nnode_t *new_node = allocate_nnode(my_location);
         new_node->related_ast_node = NULL;
         new_node->type = OUTPUT_NODE;
@@ -119,7 +109,6 @@ struct ParMYSPass : public Pass {
         allocate_more_input_pins(new_node, 1);
         add_input_port_information(new_node, 1);
 
-        /* new pin */
         npin_t *new_pin = allocate_npin();
         new_pin->name = vtr::strdup(name_str);
         add_input_pin_to_node(new_node, new_pin, 0);
@@ -129,36 +118,23 @@ struct ParMYSPass : public Pass {
         odin_netlist->top_output_nodes[odin_netlist->num_top_output_nodes++] = new_node;
     }
 
-    /**
-     * --------------------------------------------------------------------------------------------
-     * (function: build_top_input_node)
-     *
-     * @brief to create top input nodes for netlist from input pins
-     * --------------------------------------------------------------------------------------------
-     */
     static void build_top_input_node(const char *name_str, netlist_t *odin_netlist, Hashtable *output_nets_hash)
     {
-        /* create a new top input node and net*/
-
         loc_t my_loc;
         nnode_t *new_node = allocate_nnode(my_loc);
 
         new_node->related_ast_node = NULL;
         new_node->type = INPUT_NODE;
 
-        /* add the name of the input variable */
         new_node->name = vtr::strdup(name_str);
 
-        /* allocate the pins needed */
         allocate_more_output_pins(new_node, 1);
         add_output_port_information(new_node, 1);
 
-        /* Create the pin connection for the net */
         npin_t *new_pin = allocate_npin();
         new_pin->name = vtr::strdup(name_str);
         new_pin->type = OUTPUT;
 
-        /* hookup the pin, net, and node */
         add_output_pin_to_node(new_node, new_pin, 0);
 
         nnet_t *new_net = allocate_nnet();
@@ -173,17 +149,9 @@ struct ParMYSPass : public Pass {
         output_nets_hash->add(name_str, new_net);
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: create_top_driver_nets)
-     *
-     * @brief to create top VCC, GND, and Z inputs and nets
-     * -------------------------------------------------------------------------------------------
-     */
     static void create_top_driver_nets(netlist_t *odin_netlist, Hashtable *output_nets_hash)
     {
         npin_t *new_pin;
-        /* create the constant nets */
 
         /* ZERO net */
         odin_netlist->zero_net = allocate_nnet();
@@ -232,13 +200,6 @@ struct ParMYSPass : public Pass {
         odin_netlist->pad_node->name = vtr::strdup(HBPAD_NAME);
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: sig_full_ref_name_sig)
-     *
-     * @brief to create ODIN compatible names based on signal
-     * -------------------------------------------------------------------------------------------
-     */
     static char *sig_full_ref_name_sig(RTLIL::SigBit sig, pool<SigBit> &cstr_bits_seen)
     {
 
@@ -262,13 +223,6 @@ struct ParMYSPass : public Pass {
         }
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: map_input_port)
-     *
-     * @brief to map yosys input port to odin input port
-     * -------------------------------------------------------------------------------------------
-     */
     static void map_input_port(const RTLIL::IdString &mapping, SigSpec in_port, nnode_t *node, pool<SigBit> &cstr_bits_seen)
     {
 
@@ -290,13 +244,6 @@ struct ParMYSPass : public Pass {
         }
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: map_output_port)
-     *
-     * @brief to map yosys output port to odin output port
-     * -------------------------------------------------------------------------------------------
-     */
     static void map_output_port(const RTLIL::IdString &mapping, SigSpec out_port, nnode_t *node, Hashtable *output_nets_hash,
                                 pool<SigBit> &cstr_bits_seen)
     {
@@ -312,7 +259,7 @@ struct ParMYSPass : public Pass {
             npin_t *out_pin = allocate_npin();
             out_pin->name = NULL;
             out_pin->mapping = vtr::strdup(RTLIL::unescape_id(mapping).c_str());
-            add_output_pin_to_node(node, out_pin, base_pin_idx + i); // if more than one output then i + something
+            add_output_pin_to_node(node, out_pin, base_pin_idx + i);
 
             char *output_pin_name = sig_full_ref_name_sig(out_port[i], cstr_bits_seen);
             nnet_t *out_net = (nnet_t *)output_nets_hash->get(output_pin_name);
@@ -327,13 +274,6 @@ struct ParMYSPass : public Pass {
         }
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: is_param_required)
-     *
-     * @brief to check if an inferred odin node type needs additional params to be read from yosys cell
-     * -------------------------------------------------------------------------------------------
-     */
     static bool is_param_required(operation_list op)
     {
         switch (op) {
@@ -414,13 +354,6 @@ struct ParMYSPass : public Pass {
         return NO_OP;
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: to_netlist)
-     *
-     * @brief to convert yosys design to odin netlist
-     * -------------------------------------------------------------------------------------------
-     */
     static netlist_t *to_netlist(RTLIL::Module *top_module, RTLIL::Design *design)
     {
         ct.setup();
@@ -490,10 +423,8 @@ struct ParMYSPass : public Pass {
 
         long hard_id = 0;
         for (auto cell : top_module->cells()) {
-            // log("cell type: %s %s\n", cell->type.c_str(), str(cell->type).c_str());
 
             nnode_t *new_node = allocate_nnode(my_location);
-            //            new_node->cell = cell;
 
             for (auto &param : cell->parameters) {
                 new_node->cell_parameters[Yosys::RTLIL::IdString(param.first)] = Yosys::Const(param.second);
@@ -532,8 +463,6 @@ struct ParMYSPass : public Pass {
                     std::string modname(str(cell->type));
                     if (regex_match(modname, m, regex)) {
                         new_node->type = yosys_subckt_strmap[m.str(1).c_str()];
-                        // new_node->type = from_yosys_type(ID(m.str(1)));
-                        log("$paramod_1:%s\n", log_id(ID(m.str(1))));
                     }
                 } else if (cell->type.begins_with("$paramod\\")) // e.g. $paramod\dual_port_ram\ADDR_WIDTH?4'0100\DATA_WIDTH?4'0101
                 {
@@ -542,16 +471,11 @@ struct ParMYSPass : public Pass {
                     std::string modname(str(cell->type));
                     if (regex_match(modname, m, regex)) {
                         new_node->type = yosys_subckt_strmap[m.str(1).c_str()];
-                        // new_node->type = from_yosys_type(ID(m.str(1)));
-                        log("$paramod_2:%s\n", log_id(ID(m.str(1))));
                     }
                 } else if (design->module(cell->type)->get_blackbox_attribute()) {
-                    // log("SKIP for black box: %s :: %s\n", log_id(cell->name), log_id(cell->type));
                     new_node->type = SKIP;
                 } else {
                     new_node->type = HARD_IP;
-                    // odin_sprintf(new_name, "\\%s~%ld", subcircuit_stripped_name, hard_block_number - 1);
-                    /* Detect used hard block for the blif generation */
                     t_model *hb_model = find_hard_block(str(cell->type).c_str());
                     if (hb_model) {
                         hb_model->used = 1;
@@ -568,7 +492,7 @@ struct ParMYSPass : public Pass {
 
             if (new_node->type == SKIP) {
                 std::string modname(str(cell->type));
-                // Create a fake ast node.
+                // fake ast node.
                 new_node->related_ast_node = create_node_w_type(HARD_BLOCK, my_location);
                 new_node->related_ast_node->children = (ast_node_t **)vtr::calloc(1, sizeof(ast_node_t *));
                 new_node->related_ast_node->identifier_node = create_tree_node_id(vtr::strdup(modname.c_str()), my_location);
@@ -701,9 +625,6 @@ struct ParMYSPass : public Pass {
                 }
             }
 
-            /* add a name for the node, keeping the name of the node same as the output */
-            // new_node->name = vtr::strdup(log_id(port_Y[0].wire->name)); // @TODO recheck later
-
             if (new_node->type == SMUX_2) {
                 new_node->name = vtr::strdup(new_node->output_pins[0]->net->name);
             } else {
@@ -728,7 +649,6 @@ struct ParMYSPass : public Pass {
                     continue;
 
                 nnode_t *buf_node = allocate_nnode(my_location);
-                //                buf_node->cell = NULL;
 
                 buf_node->related_ast_node = NULL;
 
@@ -814,13 +734,6 @@ struct ParMYSPass : public Pass {
         }
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: elaborate)
-     *
-     * @brief to elaborate initial netlist to become ready for partial mapper
-     * -------------------------------------------------------------------------------------------
-     */
     static void elaborate(netlist_t *odin_netlist)
     {
         double elaboration_time = wall_time();
@@ -839,22 +752,12 @@ struct ParMYSPass : public Pass {
         log("\n--------------------------------------------------------------------\n");
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: optimization)
-     *
-     * @brief to optimize input odin netlist
-     * -------------------------------------------------------------------------------------------
-     */
     static void optimization(netlist_t *odin_netlist)
     {
         double optimization_time = wall_time();
 
         if (odin_netlist) {
-            // Can't levelize yet since the large muxes can look like combinational loops when they're not
             check_netlist(odin_netlist);
-
-            // START ################# NETLIST OPTIMIZATION ############################
 
             /* point for all netlist optimizations. */
             log("Performing Optimization on the Netlist\n");
@@ -888,11 +791,6 @@ struct ParMYSPass : public Pass {
                 iterate_adders_for_sub(odin_netlist);
                 clean_adders_for_sub();
             }
-
-            // END ################# NETLIST OPTIMIZATION ############################
-
-            // if (configuration.output_netlist_graphs)
-            // graphVizOutputNetlist(configuration.debug_output_path, "optimized", 2, odin_netlist); /* Path is where we are */
         }
 
         optimization_time = wall_time() - optimization_time;
@@ -901,13 +799,6 @@ struct ParMYSPass : public Pass {
         log("\n--------------------------------------------------------------------\n");
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: techmap)
-     *
-     * @brief to perform partial mapping on the netlist
-     * -------------------------------------------------------------------------------------------
-     */
     static void techmap(netlist_t *odin_netlist)
     {
         double techmap_time = wall_time();
@@ -928,13 +819,6 @@ struct ParMYSPass : public Pass {
         log("\n--------------------------------------------------------------------\n");
     }
 
-    /**
-     *---------------------------------------------------------------------------------------------
-     * (function: report)
-     *
-     * @brief to report mult/add/sub distributions and netlist statistics
-     * -------------------------------------------------------------------------------------------
-     */
     static void report(netlist_t *odin_netlist)
     {
 
@@ -949,62 +833,7 @@ struct ParMYSPass : public Pass {
     }
 
     static void log_time(double time) { log("%.1fms", time * 1000); }
-    /*
-        static void add_hb_to_design(t_model *hb, Design *design)
-        {
-            Module *module = nullptr;
-            dict<IdString, std::pair<int, bool>> wideports_cache;
 
-            module = new Module;
-            // lastcell = nullptr;
-            module->name = RTLIL::escape_id(hb->name);
-
-            if (design->module(module->name))
-                Yosys::log_error("Duplicate definition of module %s!\n", log_id(module->name));
-            design->add(module);
-
-            t_model_ports *input_port = hb->inputs;
-            while (input_port) {
-                for (int i = 0; i < input_port->size; i++) {
-                    std::string w_name = stringf("%s[%d]", input_port->name, i);
-                    Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
-                    wire->port_input = true;
-                    std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);
-                    if (!wp.first.empty() && wp.second >= 0) {
-                        wideports_cache[wp.first].first = std::max(wideports_cache[wp.first].first, wp.second + 1);
-                        wideports_cache[wp.first].second = true;
-                    }
-                }
-
-                // move forward until the end of input ports' list
-                input_port = input_port->next;
-            }
-
-            t_model_ports *output_port = hb->outputs;
-            while (output_port) {
-                for (int i = 0; i < output_port->size; i++) {
-                    std::string w_name = stringf("%s[%d]", output_port->name, i);
-                    Yosys::RTLIL::Wire *wire = to_wire(w_name, module);
-                    wire->port_output = true;
-                    std::pair<Yosys::RTLIL::IdString, int> wp = wideports_split(w_name);
-                    if (!wp.first.empty() && wp.second >= 0) {
-                        wideports_cache[wp.first].first = std::max(wideports_cache[wp.first].first, wp.second + 1);
-                        wideports_cache[wp.first].second = false;
-                    }
-                }
-
-                // move forward until the end of output ports' list
-                output_port = output_port->next;
-            }
-
-            handle_wideports_cache(&wideports_cache, module);
-
-            module->fixup_ports();
-            wideports_cache.clear();
-
-            module->attributes[ID::blackbox] = RTLIL::Const(1);
-        }
-    */
     ParMYSPass() : Pass("parmys", "ODIN_II partial mapper for Yosys") {}
     void help() override
     {
@@ -1014,24 +843,12 @@ struct ParMYSPass : public Pass {
         log("\n");
         log("    -c XML_CONFIGURATION_FILE\n");
         log("        Configuration file\n");
-        // log("\n");
-        // log("    -b BLIF_FILE\n");
-        // log("        input BLIF_FILE\n");
         log("\n");
         log("    -top top_module\n");
         log("        set the specified module as design top module\n");
         log("\n");
         log("    -nopass\n");
         log("        No additional passes will be executed.\n");
-        //        log("\n");
-        //        log("    -y YOSYS_OUTPUT_FILE_PATH\n");
-        //        log("        Output blif file path after yosys elaboration\n");
-        //        log("\n");
-        //        log("    -o ODIN_OUTPUT_FILE_PATH\n");
-        //        log("        Output blif file path after odin partial mapper\n");
-        //        log("\n");
-        //        log("    -fflegalize\n");
-        //        log("        Make all flip-flops rising edge to be compatible with VPR (may add inverters)\n");
         log("\n");
         log("    -exact_mults int_value\n");
         log("        To enable mixing hard block and soft logic implementation of adders\n");
@@ -1045,24 +862,13 @@ struct ParMYSPass : public Pass {
     }
     void execute(std::vector<std::string> args, RTLIL::Design *design) override
     {
-        //         std::string odin_techlib_dirname;
-        // #if defined(_WIN32) && !defined(YOSYS_WIN32_UNIX_DIR)
-        //         odin_techlib_dirname = proc_self_dirname() + "techlibs\\parmys\\";
-        // #else
-        //         odin_techlib_dirname = proc_self_dirname() + "techlibs/parmys/";
-        // #endif
-
         bool flag_arch_file = false;
         bool flag_config_file = false;
         bool flag_load_vtr_primitives = false;
-        // bool flag_read_verilog_input = false;
         bool flag_no_pass = false;
         std::string arch_file_path;
         std::string config_file_path;
         std::string top_module_name;
-        //        std::string yosys_coarsen_blif_output(proc_share_dirname() + "yosys_coarsen.blif");
-        //        std::string odin_mapped_blif_output(proc_share_dirname() + "odin_mapped.blif");
-        // std::string verilog_input_path;
         std::string DEFAULT_OUTPUT(".");
 
         global_args.exact_mults.set(-1, argparse::Provenance::DEFAULT);
@@ -1086,15 +892,6 @@ struct ParMYSPass : public Pass {
                 top_module_name = args[++argidx];
                 continue;
             }
-            //            if (args[argidx] == "-y" && argidx + 1 < args.size()) {
-            //                yosys_coarsen_blif_output = args[++argidx];
-            //                continue;
-            //            }
-            //            if (args[argidx] == "-o" && argidx + 1 < args.size()) {
-            //                // global_args.output_file @TODO
-            //                odin_mapped_blif_output = args[++argidx];
-            //                continue;
-            //            }
             if (args[argidx] == "-vtr_prim") {
                 flag_load_vtr_primitives = true;
                 continue;
@@ -1103,19 +900,6 @@ struct ParMYSPass : public Pass {
                 flag_no_pass = true;
                 continue;
             }
-            // if (args[argidx] == "-v" && argidx + 1 < args.size()) {
-            //     flag_read_verilog_input = true;
-            //     verilog_input_path = args[++argidx];
-            //     continue;
-            // }
-            // if (args[argidx] == "-b" && argidx + 1 < args.size()) {
-            //     global_args.blif_file.set(args[++argidx], argparse::Provenance::SPECIFIED);
-            //     continue;
-            // }
-            //            if (args[argidx] == "-fflegalize") {
-            //                global_args.fflegalize.set(true, argparse::Provenance::SPECIFIED);
-            //                continue;
-            //            }
             if (args[argidx] == "-exact_mults" && argidx + 1 < args.size()) {
                 global_args.exact_mults.set(atoi(args[++argidx].c_str()), argparse::Provenance::SPECIFIED);
                 continue;
@@ -1151,9 +935,6 @@ struct ParMYSPass : public Pass {
             mixer->_opts[MULTIPLY] = new MultsOpt(global_args.exact_mults);
         }
 
-        //        if (global_args.fflegalize.provenance() == argparse::Provenance::SPECIFIED) {
-        //        }
-
         configuration.coarsen = true;
 
         /* read the confirguration file .. get options presets the config values just in case theyr'e not read in with config file */
@@ -1179,56 +960,6 @@ struct ParMYSPass : public Pass {
             }
         }
         log("Using Lut input width of: %d\n", physical_lut_size);
-
-        // if (flag_load_vtr_primitives) {
-        //     Pass::call(design, "read_verilog -nomem2reg +/parmys/vtr_primitives.v");
-        //     Pass::call(design, "setattr -mod -set keep_hierarchy 1 single_port_ram");
-        //     Pass::call(design, "setattr -mod -set keep_hierarchy 1 dual_port_ram");
-        // }
-
-        // ********* start dsp handling ************
-
-        // t_model *hb = Arch.models;
-        // while (hb) {
-        //     if (strcmp(hb->name, SINGLE_PORT_RAM_string) && strcmp(hb->name, DUAL_PORT_RAM_string) && strcmp(hb->name, "multiply") &&
-        //         strcmp(hb->name, "adder"))
-        //         add_hb_to_design(hb, design);
-
-        //     hb = hb->next;
-        // }
-
-        // ********* finished dsp handling ************
-
-        // if (flag_read_verilog_input) {
-        //     log("Verilog: %s\n", vtr::basename(verilog_input_path).c_str());
-        //     Pass::call(design, "read_verilog -sv -nolatches " + verilog_input_path);
-        // }
-
-        // if(!flag_no_pass) {
-        // Pass::call(design, "proc;");
-        // Pass::call(design, "fsm; opt;");
-        // Pass::call(design, "memory_collect; memory_dff;");
-        // Pass::call(design, "autoname");
-        // Pass::call(design, "check");
-
-        // Pass::call(design, "techmap -map " + odin_techlib_dirname + "adff2dff.v");
-        // Pass::call(design, "techmap -map " + odin_techlib_dirname + "adffe2dff.v");
-        // Pass::call(design, "techmap */t:$shift */t:$shiftx");
-
-        // Pass::call(design, "flatten");
-        // Pass::call(design, "pmuxtree");
-        // Pass::call(design, "wreduce");
-        // Pass::call(design, "opt -undriven -full; opt_muxtree; opt_expr -mux_undef -mux_bool -fine;;;");
-        // Pass::call(design, "opt -fast");
-        // Pass::call(design, "autoname");
-        // Pass::call(design, "stat");
-        // Pass::call(design, "write_blif -blackbox -param -impltf " + yosys_coarsen_blif_output);
-        // }
-
-        // if(flag_load_vtr_primitives) {
-        // 	Pass::call(design, "proc;");
-        // // Pass::call(design, "fsm;");
-        // }
 
         if (!flag_no_pass) {
 
@@ -1325,8 +1056,6 @@ struct ParMYSPass : public Pass {
             log_error("Odin-II Failed to perform netlist optimization %s with exit code:%d \n", vtr_error.what(), ERROR_OPTIMIZATION);
         }
 
-        // graphVizOutputNetlist(".", "netlist", 1, transformed);
-
         /* Performaing partial tech. map to the target device */
         try {
             techmap(transformed);
@@ -1335,36 +1064,18 @@ struct ParMYSPass : public Pass {
             log_error("Odin-II Failed to perform partial mapping to target device %s with exit code:%d \n", vtr_error.what(), ERROR_TECHMAP);
         }
 
-        // graphVizOutputNetlist(".", "mapped", 1, transformed);
-
         synthesis_time = wall_time() - synthesis_time;
-
-        /* output the netlist into a BLIF file */
-        // try {
-        // 	log("Outputting the netlist to BLIF output format\n");
-        // 	GenericWriter after_writer = GenericWriter();
-        // 	after_writer._create_file(odin_mapped_blif_output.c_str(), _BLIF);
-        // 	after_writer._write(transformed);
-        // 	log("\tBLIF file available at %s\n", odin_mapped_blif_output.c_str());
-        // } catch (vtr::VtrError& vtr_error) {
-        // 	log_error("Odin-II Failed to output the netlist %s with exit code:%d \n", vtr_error.what(), ERROR_OUTPUT);
-        // }
 
         log("\nTotal Synthesis Time: ");
         log_time(synthesis_time);
         log("\n--------------------------------------------------------------------\n");
 
         log("Updating the Design\n");
-        // Pass::call(design, "stat");
         Pass::call(design, "delete");
 
         for (auto module : design->modules()) {
             design->remove(module);
         }
-
-        // Pass::call(design, "stat");
-        // Pass::call(design, "ls");
-        // Pass::call(design, "stat");
 
         for (auto bb_module : black_boxes) {
             Yosys::Module *module = nullptr;
@@ -1374,7 +1085,7 @@ struct ParMYSPass : public Pass {
             module->name = RTLIL::escape_id(bb_module.name);
 
             if (design->module(module->name))
-                Yosys::log_error("Duplicate definition of module %s!\n", Yosys::log_id(module->name));
+                log_error("Duplicate definition of module %s!\n", Yosys::log_id(module->name));
 
             design->add(module);
 
@@ -1408,13 +1119,7 @@ struct ParMYSPass : public Pass {
 
         update_design(design, transformed);
 
-        // graphVizOutputNetlist(".", "updated", 1, transformed);
-
-        // report(transformed);
-        //  compute_statistics(transformed, true);
-
         if (!flag_no_pass) {
-            // Pass::call(design, "hierarchy -check -auto-top -purge_lib");
             if (top_module_name.empty()) {
                 Pass::call(design, "hierarchy -check -auto-top -purge_lib");
             } else {
@@ -1423,9 +1128,6 @@ struct ParMYSPass : public Pass {
         }
 
         log("--------------------------------------------------------------------\n");
-
-        // Pass::call(design, "design -stash $odin");
-        // output_design(design, transformed);
 
         free_netlist(transformed);
 

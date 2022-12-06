@@ -41,9 +41,9 @@ short physical_lut_size = -1;
 HardSoftLogicMixer *mixer;
 
 /* CONSTANT NET ELEMENTS */
-char* one_string;
-char* zero_string;
-char* pad_string;
+char *one_string;
+char *zero_string;
+char *pad_string;
 
 /*---------------------------------------------------------------------------
  * (function: set_default_options)

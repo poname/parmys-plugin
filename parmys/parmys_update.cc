@@ -31,9 +31,9 @@
 #include "hard_blocks.h"
 #include "multipliers.h"
 
-#include "DesignUpdate.hpp"
 #include "kernel/rtlil.h"
-#include "yosys_utils.hpp"
+#include "parmys_update.hpp"
+#include "parmys_utils.hpp"
 
 static void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design);
 static void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, netlist_t *netlist,
@@ -49,15 +49,12 @@ Yosys::Wire *wire_net_driver(Yosys::Module *module, nnode_t *node, nnet_t *net, 
         // Add a warning for an undriven net.
         warning_message(NETLIST, node->loc, "Net %s driving node %s is itself undriven.", net->name, node->name);
 
-        // fprintf(out, " %s", "unconn");
         wire_name = "$undef";
     } else {
         if (driver->name != NULL && ((driver->node->type == MULTIPLY) || (driver->node->type == HARD_IP) || (driver->node->type == MEMORY) ||
                                      (driver->node->type == ADD) || (driver->node->type == MINUS) || (driver->node->type == SKIP))) {
-            // fprintf(out, " %s", driver->name);
             wire_name = driver->name;
         } else {
-            // fprintf(out, " %s", driver->node->name);
             wire_name = driver->node->name;
         }
     }
@@ -87,19 +84,8 @@ Yosys::Wire *wire_output_pin(Yosys::Module *module, nnode_t *node)
     return wire;
 }
 
-/**
- * ---------------------------------------------------------------------------------------------
- * (function: output_blif)
- *
- * @brief The function that prints out the details for a blif formatted file
- *
- * @param out the output blif file
- * @param netlist pointer to the netlist
- * ---------------------------------------------------------------------------------------------
- */
 void update_design(Yosys::Design *design, netlist_t *netlist)
 {
-    // fprintf(out, ".model %s\n", netlist->identifier);
     Yosys::RTLIL::Module *module = nullptr;
     std::string err_reason;
     int blif_maxnum = 0;
@@ -139,7 +125,7 @@ void update_design(Yosys::Design *design, netlist_t *netlist)
     for (long i = 0; i < netlist->num_top_output_nodes; i++) {
         nnode_t *top_output_node = netlist->top_output_nodes[i];
         if (!top_output_node->input_pins[0]->net->num_driver_pins) {
-            warning_message(NETLIST, top_output_node->loc, "This output is undriven (%s) and will be removed\n", top_output_node->name);
+            Yosys::log_warning("This output is undriven (%s) and will be removed\n", top_output_node->name);
         } else {
             Yosys::RTLIL::Wire *wire = to_wire(top_output_node->name, module);
             wire->port_output = true;
@@ -216,34 +202,20 @@ void update_design(Yosys::Design *design, netlist_t *netlist)
     module = nullptr;
 }
 
-/**
- * ---------------------------------------------------------------------------------------------
- * (function: depth_first_traversal_to_parital_map()
- *
- * @brief traverse the netlist to output the blif file
- *
- * @param marker_value unique traversal mark for output blif pass
- * @param fp the output blif file
- * @param netlist pointer to the netlist
- * ---------------------------------------------------------------------------------------------
- */
 void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design)
 {
     int i;
 
-    /* if a coarsen BLIF is recieved, these variables are already created */
     if (!coarsen_cleanup) {
         netlist->gnd_node->name = vtr::strdup("$false");
         netlist->vcc_node->name = vtr::strdup("$true");
         netlist->pad_node->name = vtr::strdup("$undef");
     }
 
-    /* now traverse the ground, vcc, and unconn pins */
     depth_traverse_update_design(netlist->gnd_node, marker_value, module, netlist, design);
     depth_traverse_update_design(netlist->vcc_node, marker_value, module, netlist, design);
     depth_traverse_update_design(netlist->pad_node, marker_value, module, netlist, design);
 
-    /* start with the primary input list */
     for (i = 0; i < netlist->num_top_input_nodes; i++) {
         if (netlist->top_input_nodes[i] != NULL) {
             depth_traverse_update_design(netlist->top_input_nodes[i], marker_value, module, netlist, design);
@@ -251,17 +223,6 @@ void depth_first_traversal_to_design(short marker_value, Yosys::Module *module, 
     }
 }
 
-/**
- * ---------------------------------------------------------------------------------------------
- * (function: depth_first_traverse)
- *
- * @brief traverse the netlist to output the blif file
- *
- * @param node pointer to the netlist node
- * @param traverse_mark_number unique traversal mark for output blif pass
- * @param fp the output blif file
- * ---------------------------------------------------------------------------------------------
- */
 void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design)
 {
     int i, j;
@@ -271,9 +232,6 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
     if (node->traverse_visited == traverse_mark_number) {
         return;
     } else {
-        /* ELSE - this is a new node so depth visit it */
-
-        /* POST traverse  map the node since you might delete */
         cell_node(node, traverse_mark_number, module, netlist, design);
 
         node->traverse_visited = traverse_mark_number;
@@ -296,17 +254,7 @@ void depth_traverse_update_design(nnode_t *node, uintptr_t traverse_mark_number,
         }
     }
 }
-/**
- * ---------------------------------------------------------------------------------------------
- * (function: output_node)
- *
- * @brief Depending on node type, figures out what to print for this node
- *
- * @param node pointer to the netlist node
- * @param traverse_number unique traversal mark for output blif pass
- * @param fp the output blif file
- * ---------------------------------------------------------------------------------------------
- */
+
 void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, netlist_t *netlist, Yosys::Design *design)
 {
     switch (node->type) {
@@ -398,8 +346,7 @@ void cell_node(nnode_t *node, short /*traverse_number*/, Yosys::Module *module, 
     case GTE:
     case LTE:
     default:
-        /* these nodes should have been converted to softer versions */
-        error_message(NETLIST, node->loc, "%s", "Output blif: node should have been converted to softer version.");
+        Yosys::log_error("node should have been converted to softer version.");
         break;
     }
 }
@@ -411,14 +358,8 @@ void define_FF_yosys(nnode_t *node, Yosys::Module *module)
     const char *clk_edge_type_str = edge_type_blif_str(node->attributes->clk_edge_type, node->loc);
     char *edge = vtr::strdup(clk_edge_type_str);
     Yosys::Wire *clock = wire_input_single_driver(module, node, 1);
-    // char zero_init = '0';
-    // char one_init = '1';
-    // char x_init = 'x';
-    // char *init = (node->initial_value == _0) ? &zero_init : (node->initial_value == _1) ? &one_init : &x_init;
-    // Yosys::RTLIL::Cell *cell = nullptr;
 
     if (clock == nullptr && edge != nullptr) {
-        // init = edge;
         edge = nullptr;
     }
 
@@ -452,14 +393,14 @@ void define_MUX_function_yosys(nnode_t *node, Yosys::Module *module)
 
     for (int i = 0; i < node->input_port_sizes[0]; i++) {
         nnet_t *input_net = node->input_pins[i]->net;
-        Yosys::Wire *driver_wire = wire_net_driver(module, node, input_net, 0); // 0 TODO?
+        Yosys::Wire *driver_wire = wire_net_driver(module, node, input_net, 0);
 
         input_sig_A.append(driver_wire);
     }
 
     for (int i = node->input_port_sizes[0]; i < node->num_input_pins; i++) {
         nnet_t *input_net = node->input_pins[i]->net;
-        Yosys::Wire *driver_wire = wire_net_driver(module, node, input_net, 0); // 0 TODO?
+        Yosys::Wire *driver_wire = wire_net_driver(module, node, input_net, 0);
 
         input_sig_B.append(driver_wire);
     }
@@ -515,12 +456,9 @@ void define_logical_function_yosys(nnode_t *node, Yosys::Module *module)
     switch (node->type) {
     case LOGICAL_AND: {
         celltype = ID($reduce_and);
-        /* generates: 111111 1 */
         break;
     }
     case LOGICAL_OR: {
-        // break;
-        /* generates: 1----- 1\n-1----- 1\n ... */
         celltype = ID($reduce_or);
         break;
     }
@@ -530,7 +468,6 @@ void define_logical_function_yosys(nnode_t *node, Yosys::Module *module)
     }
     case LOGICAL_NOT:
     case LOGICAL_NOR: {
-        /* generates: 0000000 1 */
         celltype = ID($logic_not);
         break;
     }

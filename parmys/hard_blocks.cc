@@ -32,7 +32,7 @@
 
 #include "kernel/yosys.h"
 
-#include "yosys_utils.hpp"
+#include "parmys_utils.hpp"
 
 STRING_CACHE *hard_block_names = NULL;
 

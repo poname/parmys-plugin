@@ -20,25 +20,25 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Hashtable.hpp"
 #include "odin_types.h"
 #include "vtr_memory.h"
 
-void Hashtable::destroy_free_items() {
+void Hashtable::destroy_free_items()
+{
     for (auto kv : my_map)
         vtr::free(kv.second);
 }
 
-void Hashtable::add(std::string key, void* item) {
-    this->my_map.emplace(key, item);
-}
+void Hashtable::add(std::string key, void *item) { this->my_map.emplace(key, item); }
 
-void* Hashtable::remove(std::string key) {
-    void* value = NULL;
+void *Hashtable::remove(std::string key)
+{
+    void *value = NULL;
     auto v = this->my_map.find(key);
     if (v != this->my_map.end()) {
         value = v->second;
@@ -47,8 +47,9 @@ void* Hashtable::remove(std::string key) {
     return value;
 }
 
-void* Hashtable::get(std::string key) {
-    void* value = NULL;
+void *Hashtable::get(std::string key)
+{
+    void *value = NULL;
     auto v = this->my_map.find(key);
     if (v != this->my_map.end())
         value = v->second;
@@ -56,13 +57,4 @@ void* Hashtable::get(std::string key) {
     return value;
 }
 
-bool Hashtable::is_empty() {
-    return my_map.empty();
-}
-
-void Hashtable::log() {
-    for (auto& it: my_map) {
-        // Do stuff
-        printf("key: %s\n", it.first.c_str());
-    }
-}
+bool Hashtable::is_empty() { return my_map.empty(); }

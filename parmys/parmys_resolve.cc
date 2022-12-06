@@ -29,10 +29,10 @@
 #include "netlist_utils.h"
 
 #include "BlockMemories.hpp"
-#include "Resolve.hpp"
 #include "adders.h"
 #include "memories.h"
 #include "multipliers.h"
+#include "parmys_resolve.hpp"
 #include "subtractions.h"
 
 #include "vtr_util.h"

@@ -1,9 +1,9 @@
 #ifndef CONFIG_T_H
 #define CONFIG_T_H
 
-#include <vector>
-#include <string>
 #include "odin_types.h"
+#include <string>
+#include <vector>
 
 /* This is the data structure that holds config file details */
 struct config_t {
@@ -11,7 +11,7 @@ struct config_t {
 
     std::string debug_output_path; // path for where to output the debug outputs
     std::string dsp_verilog;       // path for the output Verilog file including target DSPs' declaration
-    bool coarsen;        // Specify if the input BLIF is coarse-grain
+    bool coarsen;                  // Specify if the input BLIF is coarse-grain
 
     bool output_netlist_graphs; // switch that outputs netlist graphs per node for use with GraphViz tools
 

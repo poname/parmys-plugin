@@ -95,8 +95,8 @@ const char *operation_list_STR[][2] = {
   {"YMEM", "yRAM"},                  // representing primitive dual port ram
   {"YMEM2", "yRAM"},                 // representing primitive dual port ram
   {"ROM", "ROM"},
-  {"BRAM", "bRAM"}, // block of memry generated in yosys subcircuit formet blif file
-                    // [END] operations to cover yosys subckt
+  {"BRAM", "bRAM"},    // block of memry generated in yosys subcircuit formet blif file
+                       // [END] operations to cover yosys subckt
   {"ERROR OOB", "OOB"} // should not reach this
 };
 

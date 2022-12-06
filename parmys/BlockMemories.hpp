@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2021 Seyed Alireza Damghani (sdamghann@gmail.com)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -22,8 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  *
- * @file This file includes the definition of the basic structure 
- * used in Odin-II Block Memory resolving process. Moreover, it 
+ * @file This file includes the definition of the basic structure
+ * used in Odin-II Block Memory resolving process. Moreover, it
  * provides the declaration of the related public routines.
  */
 #ifndef _BLOCK_MEMORIES_H_
@@ -41,23 +41,23 @@ const int LUTRAM_INFERENCE_THRESHOLD_MAX = 640; // Min number of bits for LUTRAM
  */
 struct block_memory_t {
     loc_t loc;
-    nnode_t* node;
+    nnode_t *node;
 
-    signal_list_t* read_addr;
-    signal_list_t* read_data;
-    signal_list_t* read_en;
+    signal_list_t *read_addr;
+    signal_list_t *read_data;
+    signal_list_t *read_en;
 
-    signal_list_t* write_addr;
-    signal_list_t* write_data;
-    signal_list_t* write_en;
+    signal_list_t *write_addr;
+    signal_list_t *write_data;
+    signal_list_t *write_en;
 
-    signal_list_t* clk;
+    signal_list_t *clk;
 
-    char* name;
-    char* memory_id;
+    char *name;
+    char *memory_id;
 };
 
-typedef std::unordered_map<std::string, block_memory_t*> block_memory_hashtable;
+typedef std::unordered_map<std::string, block_memory_t *> block_memory_hashtable;
 
 /**
  * block memories information. variable will be invalid
@@ -71,16 +71,16 @@ struct block_memory_information_t {
      * corresponding netlist node. These linked lists are used in
      * optimization iteration, including signal pruning, REG/LUTRAM
      * threshold checking and mapping to VTR memory blocks. Once the
-     * optimization iteration is done, these linked lists are not 
+     * optimization iteration is done, these linked lists are not
      * valid anymore.
-     * 
+     *
      * [NOTE] Block memories and read-only memory both use the same
-     * structure (block_memory_t*). They only differ in terms of 
+     * structure (block_memory_t*). They only differ in terms of
      * their member variables initialization. The naming convention
      * is only due to the ease of the coding process.
      */
-    vtr::t_linked_vptr* block_memory_list;
-    vtr::t_linked_vptr* read_only_memory_list;
+    vtr::t_linked_vptr *block_memory_list;
+    vtr::t_linked_vptr *read_only_memory_list;
     /* hashtable to look up block memories faster */
     block_memory_hashtable block_memories;
     block_memory_hashtable read_only_memories;
@@ -90,11 +90,11 @@ extern block_memory_information_t block_memories_info;
 extern void init_block_memory_index();
 extern void free_block_memories();
 
-extern void resolve_ymem_node(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-extern void resolve_ymem2_node(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-extern void resolve_bram_node(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
-extern void resolve_rom_node(nnode_t* node, uintptr_t traverse_mark_number, netlist_t* netlist);
+extern void resolve_ymem_node(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist);
+extern void resolve_ymem2_node(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist);
+extern void resolve_bram_node(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist);
+extern void resolve_rom_node(nnode_t *node, uintptr_t traverse_mark_number, netlist_t *netlist);
 
-extern void iterate_block_memories(netlist_t* netlist);
+extern void iterate_block_memories(netlist_t *netlist);
 
 #endif // _BLOCK_MEMORIES_H_

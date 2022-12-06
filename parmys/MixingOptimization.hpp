@@ -27,9 +27,10 @@
 class HardSoftLogicMixer;
 /**
  * @brief A base class in hierarchy for complex synthesis
- * allowing for mixing soft and hard logic 
+ * allowing for mixing soft and hard logic
  */
-class MixingOpt {
+class MixingOpt
+{
   public:
     /**
      * @brief Construct a new Mixing Opt object for disabled optimization
@@ -39,20 +40,17 @@ class MixingOpt {
 
     /**
      * @brief Construct a new Mixing Opt object
-     * 
-     * By default, all optimizations only share 
-     * the ratio of blocks to be implemented in 
+     *
+     * By default, all optimizations only share
+     * the ratio of blocks to be implemented in
      * hard logic
-     * @param ratio, a value within 0 to 1 to 
+     * @param ratio, a value within 0 to 1 to
      * implement ratio*requested hard blocks in
      * hard logic
      * @param kind a kind of blocks that correspond
      * to optimization pass
      */
-    MixingOpt(float ratio, operation_list kind)
-        : _kind(kind) {
-        _ratio = ratio;
-    }
+    MixingOpt(float ratio, operation_list kind) : _kind(kind) { _ratio = ratio; }
 
     /**
      * @brief Destroy the Mixing Opt object
@@ -65,49 +63,45 @@ class MixingOpt {
      *
      * @param nnode_t* pointer to the node
      */
-    virtual void assign_weights(netlist_t* netlist, std::vector<nnode_t*> nodes);
+    virtual void assign_weights(netlist_t *netlist, std::vector<nnode_t *> nodes);
 
     /**
      * @brief Checks if the optimization is enabled for this node
      *
      * @param nodes pointer to the vector with mults
      */
-    virtual bool enabled() {
-        return _enabled;
-    }
+    virtual bool enabled() { return _enabled; }
 
     /**
      * @brief Instantiates an alternative (not on hard blocks)
      * implementation for the operation
-     * 
-     * @param netlist 
-     * @param nodes 
+     *
+     * @param netlist
+     * @param nodes
      */
-    virtual void instantiate_soft_logic(netlist_t* netlist, std::vector<nnode_t*> nodes);
+    virtual void instantiate_soft_logic(netlist_t *netlist, std::vector<nnode_t *> nodes);
 
     /**
      * @brief performs the optimization pass, varies between kinds.
      * If the implementation is not provided within the inherited class
      * will throw ODIN error
-     * 
+     *
      * @param netlist_t* pointer to a global netlist
      * @param std::vector<nnode_t*> a vector with nodes the optimization
-     * pass is concerned (all of which are potential candidates to 
+     * pass is concerned (all of which are potential candidates to
      * be implemented in hard blocks for a given _kind)
      */
-    virtual void perform(netlist_t*, std::vector<nnode_t*>&);
+    virtual void perform(netlist_t *, std::vector<nnode_t *> &);
 
     /**
      * @brief Set the blocks of blocks required
      * by counting in netlist
      *
-     * @param count 
+     * @param count
      */
     virtual void set_blocks_needed(int count);
 
-    operation_list get_kind() {
-        return _kind;
-    }
+    operation_list get_kind() { return _kind; }
 
     /**
      * @brief based on criteria for hardening given kind of operation, return
@@ -115,9 +109,7 @@ class MixingOpt {
      *
      * @param nnode_t* pointer to the node
      */
-    virtual bool hardenable(nnode_t*) {
-        return false;
-    }
+    virtual bool hardenable(nnode_t *) { return false; }
 
     /**
      * @brief allowing for replacing with dynamic polymorphism for different
@@ -125,7 +117,7 @@ class MixingOpt {
      *
      * @param nnode_t* pointer to the node
      */
-    virtual void partial_map_node(nnode_t*, short, netlist_t*, HardSoftLogicMixer*);
+    virtual void partial_map_node(nnode_t *, short, netlist_t *, HardSoftLogicMixer *);
 
   protected:
     /**
@@ -136,7 +128,7 @@ class MixingOpt {
 
     /**
      * @brief this variable allows to cache traverse value
-     * 
+     *
      */
     short cached_traverse_value = 0;
 
@@ -151,26 +143,26 @@ class MixingOpt {
     operation_list _kind = operation_list_END;
 };
 
-class MultsOpt : public MixingOpt {
+class MultsOpt : public MixingOpt
+{
   public:
     /**
      * @brief Construct a new Mults Opt object for disabled optimization
      * usable for querying 'hardenable' condition
      */
-    MultsOpt()
-        : MixingOpt() {}
+    MultsOpt() : MixingOpt() {}
 
     /**
      * @brief Construct a new Mults Opt object
      * from ratio parameter
-     * @param ratio 
+     * @param ratio
      */
     MultsOpt(float ratio);
     /**
      * @brief Construct a new Mults Opt object
      * allowing to set exact number of multipliers
      * that will be used
-     * @param exact 
+     * @param exact
      */
     MultsOpt(int exact);
 
@@ -179,7 +171,7 @@ class MultsOpt : public MixingOpt {
      *
      * @param nodes pointer to the vector with mults
      */
-    virtual void assign_weights(netlist_t* netlist, std::vector<nnode_t*> nodes);
+    virtual void assign_weights(netlist_t *netlist, std::vector<nnode_t *> nodes);
 
     /**
      * @brief allowing for replacing with dynamic polymorphism for different
@@ -187,34 +179,34 @@ class MultsOpt : public MixingOpt {
      *
      * @param nnode_t* pointer to the node
      */
-    virtual void partial_map_node(nnode_t*, short, netlist_t*, HardSoftLogicMixer*);
+    virtual void partial_map_node(nnode_t *, short, netlist_t *, HardSoftLogicMixer *);
     /**
      * @brief Instantiates an alternative (not on hard blocks)
      * implementation for the operation
-     * 
-     * @param netlist 
-     * @param nodes 
+     *
+     * @param netlist
+     * @param nodes
      */
-    virtual void instantiate_soft_logic(netlist_t* netlist, std::vector<nnode_t*> nodes);
+    virtual void instantiate_soft_logic(netlist_t *netlist, std::vector<nnode_t *> nodes);
 
     /**
      * @brief performs the optimization pass, specifically for multipliers.
      * If the implementation is not provided within the inherited class
      * will throw ODIN error
-     * 
+     *
      * @param netlist_t* pointer to a global netlist
      * @param std::vector<nnode_t*> a vector with nodes the optimization
-     * pass is concerned (all of which are potential candidates to 
+     * pass is concerned (all of which are potential candidates to
      * be implemented in hard blocks for a given _kind)
      */
-    virtual void perform(netlist_t* netlist, std::vector<nnode_t*>&);
+    virtual void perform(netlist_t *netlist, std::vector<nnode_t *> &);
 
     /**
      * @brief Set the blocks of blocks required
      * by counting in netlist. Has to be overriden, to account
      * with specifics of optimization
      *
-     * @param count 
+     * @param count
      */
     virtual void set_blocks_needed(int);
 
@@ -224,7 +216,7 @@ class MultsOpt : public MixingOpt {
      *
      * @param nnode_t* pointer to the node
      */
-    virtual bool hardenable(nnode_t*);
+    virtual bool hardenable(nnode_t *);
 };
 
 #endif
