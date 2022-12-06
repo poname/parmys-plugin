@@ -1,7 +1,7 @@
 /*
- *  yosys -- Yosys Open SYnthesis Suite
+ *  Parmys -- Partial Mapper for Yosys
  *
- *  Copyright (C) 2022  Daniel Khadivi <dani-kh@live.com>
+ *  Copyright (C) 2022  Daniel Khadivi
  *
  *  Permission to use, copy, modify, and/or distribute this software for any
  *  purpose with or without fee is hereby granted, provided that the above
