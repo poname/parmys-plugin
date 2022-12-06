@@ -36,6 +36,7 @@ SOURCES = parmys.cc \
 		  ../third_party/libvtrutil/src/vtr_digest.cc \
 		  ../third_party/libvtrutil/src/vtr_math.cc \
 		  ../third_party/libvtrutil/src/vtr_path.cc \
+		  ../third_party/libvtrutil/src/vtr_assert.cc \
 		  ../third_party/liblog/src/log.cc \
 		  ../third_party/libpugixml/src/pugixml.cc \
 		  ../third_party/libargparse/src/argparse.cc \
